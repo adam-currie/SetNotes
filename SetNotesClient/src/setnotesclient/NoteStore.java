@@ -26,6 +26,7 @@ import shared.Util;
  * @author Adam
  */
 public class NoteStore{
+    AESEncryption aes;
     PaddedBufferedBlockCipher encryptCipher;
     PaddedBufferedBlockCipher decryptCipher;    
     private ECPrivateKeyParameters privateKey;
@@ -41,6 +42,9 @@ public class NoteStore{
         }catch(MalformedURLException ex){
             Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        //todo: possibly use different 
+        aes = new AESEncryption(privateKeyStr);
     }
     
     public static String generateKey(){
@@ -74,7 +78,10 @@ public class NoteStore{
         params.put("editDate", note.getEditDate());
         params.put("isDeleted", note.getDeleted());
         params.put("publicKey", Util.publicKeyToBase64(publicKey));
-        //todo params.put("noteData", encrypt(note.getNoteBody()));//todo, sign
+        
+        //todo: change all encoding in AESEncryption to base64 if it doesnt work
+        String cipherText = aes.encrypt(note.getNoteBody());
+        params.put("noteData", cipherText);//todo: sign
         
         StringBuilder postData = new StringBuilder();
         for (Map.Entry<String,Object> param : params.entrySet()) {

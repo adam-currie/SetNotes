@@ -97,7 +97,7 @@ public class TestFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        Note note = new Note(getButton.getText());
+        Note note = new Note(addNoteTextArea.getText());
         noteStore.addOrUpdate(note);
     }//GEN-LAST:event_addButtonActionPerformed
 
