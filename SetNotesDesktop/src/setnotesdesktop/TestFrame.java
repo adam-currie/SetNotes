@@ -5,16 +5,21 @@
  */
 package setnotesdesktop;
 
+import java.util.List;
+import setnotesclient.Note;
+import setnotesclient.NoteStore;
+
 /**
  *
  * @author Adam
  */
-public class MainFrame extends javax.swing.JFrame{
+public class TestFrame extends javax.swing.JFrame{
+    private static NoteStore noteStore;
 
     /**
      * Creates new form MainFrame
      */
-    public MainFrame(){
+    public TestFrame(){
         initComponents();
     }
 
@@ -31,8 +36,8 @@ public class MainFrame extends javax.swing.JFrame{
         addNoteTextArea = new javax.swing.JTextArea();
         addButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        DisplayNotesTextArea = new javax.swing.JTextArea();
-        editButton = new javax.swing.JButton();
+        displayNotesTextArea = new javax.swing.JTextArea();
+        getButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -47,14 +52,14 @@ public class MainFrame extends javax.swing.JFrame{
             }
         });
 
-        DisplayNotesTextArea.setColumns(20);
-        DisplayNotesTextArea.setRows(5);
-        jScrollPane2.setViewportView(DisplayNotesTextArea);
+        displayNotesTextArea.setColumns(20);
+        displayNotesTextArea.setRows(5);
+        jScrollPane2.setViewportView(displayNotesTextArea);
 
-        editButton.setText("Get Notes");
-        editButton.addActionListener(new java.awt.event.ActionListener() {
+        getButton.setText("Get Notes");
+        getButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editButtonActionPerformed(evt);
+                getButtonActionPerformed(evt);
             }
         });
 
@@ -71,7 +76,7 @@ public class MainFrame extends javax.swing.JFrame{
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(addButton, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(editButton, javax.swing.GroupLayout.Alignment.TRAILING))))
+                            .addComponent(getButton, javax.swing.GroupLayout.Alignment.TRAILING))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -84,7 +89,7 @@ public class MainFrame extends javax.swing.JFrame{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(editButton)
+                .addComponent(getButton)
                 .addContainerGap())
         );
 
@@ -92,12 +97,21 @@ public class MainFrame extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        // TODO add your handling code here:
+        Note note = new Note(getButton.getText());
+        noteStore.addOrUpdate(note);
     }//GEN-LAST:event_addButtonActionPerformed
 
-    private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_editButtonActionPerformed
+    private void getButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getButtonActionPerformed
+        List<Note> noteList = noteStore.getNotes();
+        
+        displayNotesTextArea.setText("");
+        
+        for(Note note : noteList){
+            displayNotesTextArea.append("Creation Date: " + note.getCreateDate() + "\n");
+            displayNotesTextArea.append("Edited Date: " + note.getCreateDate() + "\n");
+            displayNotesTextArea.append("Note Body: " + note.getCreateDate() + "\n\n\n");
+        }
+    }//GEN-LAST:event_getButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -120,31 +134,30 @@ public class MainFrame extends javax.swing.JFrame{
                 }
             }
         }catch(ClassNotFoundException ex){
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TestFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }catch(InstantiationException ex){
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TestFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }catch(IllegalAccessException ex){
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TestFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }catch(javax.swing.UnsupportedLookAndFeelException ex){
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TestFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
-        /*
-         * Create and display the form
-         */
-        java.awt.EventQueue.invokeLater(new Runnable(){
-            public void run(){
-                new MainFrame().setVisible(true);
-            }
+        //</editor-fold>
+        
+        //notestore
+        noteStore = new NoteStore(NoteStore.generateKey());
+        
+        java.awt.EventQueue.invokeLater(() -> {
+            new TestFrame().setVisible(true);
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea DisplayNotesTextArea;
     private javax.swing.JButton addButton;
     private javax.swing.JTextArea addNoteTextArea;
-    private javax.swing.JButton editButton;
+    private javax.swing.JTextArea displayNotesTextArea;
+    private javax.swing.JButton getButton;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
