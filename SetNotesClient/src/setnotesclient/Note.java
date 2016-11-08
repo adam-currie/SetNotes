@@ -26,7 +26,6 @@ public class Note{
         noteId = new SecureRandom().nextLong();
         createDate = new Date();
         editDate = (Date)createDate.clone();
-        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     long getNoteId(){
