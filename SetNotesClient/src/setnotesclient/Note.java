@@ -17,6 +17,7 @@ public class Note{
     private Date createDate;
     private Date editDate;
     private String noteBody;
+    private boolean isDeleted;
 
     Note(){
     }
@@ -26,6 +27,7 @@ public class Note{
         noteId = new SecureRandom().nextLong();
         createDate = new Date();
         editDate = (Date)createDate.clone();
+        isDeleted = false;
     }
     
     long getNoteId(){
@@ -43,6 +45,14 @@ public class Note{
 
     void setCreateDate(Date createDate){
         this.createDate = createDate;
+    }
+    
+    void setDeleted(Boolean isDeleted){
+       this.isDeleted = isDeleted;
+    }
+    
+    boolean getDeleted(){
+        return isDeleted;
     }
     
     //gets a copy of the edit date

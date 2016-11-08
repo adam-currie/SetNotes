@@ -10,10 +10,15 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import shared.Util;
 
 /**
@@ -21,12 +26,16 @@ import shared.Util;
  * @author Adam
  */
 public class NoteStore{
+    PaddedBufferedBlockCipher encryptCipher;
+    PaddedBufferedBlockCipher decryptCipher;    
     private ECPrivateKeyParameters privateKey;
+    private ECPublicKeyParameters publicKey;
     private final String URL_STR = "http://intentclan.org:8080/SetNotesServer/NotesServlet";
     URL url;
     
     public NoteStore(String privateKeyStr){
         privateKey = Util.base64ToPrivateKey(privateKeyStr);
+        publicKey = Util.publicKeyFromPrivate(privateKey);
         try{
             url = new URL("http://intentclan.org:8080/SetNotesServer/NotesServlet");
         }catch(MalformedURLException ex){
@@ -54,18 +63,29 @@ public class NoteStore{
     
     private void sendNote(Note note) throws IOException{
         HttpURLConnection con  = (HttpURLConnection)url.openConnection();
+        con.setRequestMethod("POST");
         con.setDoOutput(true);
-        con.setRequestMethod("PUT");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");        
         
         //params
-        String noteId = Long.toString(note.getNoteId());
-        con.setRequestProperty("noteId", noteId);
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("noteId", "debug& p = %&d="+Long.toString(note.getNoteId()));
+        params.put("createDate", note.getCreateDate());
+        params.put("editDate", note.getEditDate());
+        params.put("isDeleted", note.getDeleted());
+        params.put("publicKey", Util.publicKeyToBase64(publicKey));
+        //todo params.put("noteData", encrypt(note.getNoteBody()));//todo, sign
         
-        //payload
-        OutputStreamWriter out = new OutputStreamWriter(con.getOutputStream());
-        out.write("test message");//debug
-        //todo: write to stream
-        out.close();
+        StringBuilder postData = new StringBuilder();
+        for (Map.Entry<String,Object> param : params.entrySet()) {
+            if (postData.length() != 0) postData.append('&');
+            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+            postData.append('=');
+            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        }
+        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+        con.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+        con.getOutputStream().write(postDataBytes);
         
         ///get response
         int response = con.getResponseCode();
