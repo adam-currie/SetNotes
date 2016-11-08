@@ -5,11 +5,14 @@
  */
 package shared;
 
+import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Base64;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
@@ -25,8 +28,50 @@ public class Util{
     
     //debug main
     public static void main(String[] args){
-        //todo: test these methods
+        AsymmetricCipherKeyPair pair = generateKey();
+        ECPrivateKeyParameters priv = (ECPrivateKeyParameters)pair.getPrivate();
+        ECPublicKeyParameters pub = (ECPublicKeyParameters)pair.getPublic();
+        System.out.println("private key: " + privateKeyToBase64(priv));
+        System.out.println("Public key:  " + publicKeyToBase64(pub));
+        
+        System.out.println("public key from private: " + publicKeyToBase64(publicKeyFromPrivate(priv)));
+        
+        System.out.println("public key to base64, back to key, and back to base64: " + 
+                publicKeyToBase64(base64ToPublicKey(publicKeyToBase64(pub)))
+        );
+        
+        System.out.println("private key to base64, back to key, and back to base64: " + 
+                privateKeyToBase64(base64ToPrivateKey(privateKeyToBase64(priv)))
+        );
+        
+        return;
     }
+    
+    public static ECPublicKeyParameters publicKeyFromPrivate(ECPrivateKeyParameters privateKey){
+        //get params
+        X9ECParameters curveParams = SECNamedCurves.getByName("secp256r1");
+        ECDomainParameters domainParams = new ECDomainParameters(
+            curveParams.getCurve(), curveParams.getG(), curveParams.getN(), curveParams.getH(), curveParams.getSeed());
+        
+        ECPoint q = domainParams.getG().multiply(privateKey.getD());
+        
+        return new ECPublicKeyParameters(q, domainParams);
+    }
+    
+    
+//    private static readonly Org.BouncyCastle.Asn1.X9.X9ECParameters curve = Org.BouncyCastle.Asn1.Sec.SecNamedCurves.GetByName("secp256r1");
+//    private static readonly Org.BouncyCastle.Crypto.Parameters.ECDomainParameters domain = new Org.BouncyCastle.Crypto.Parameters.ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
+//    public string GetPublicKey(string privKey)
+//    {
+//          Org.BouncyCastle.Math.BigInteger d = new Org.BouncyCastle.Math.BigInteger(Convert.FromBase64String(privKey));
+//          //var privKeyParameters = new Org.BouncyCastle.Crypto.Parameters.ECPrivateKeyParameters(d, domain);
+//          Org.BouncyCastle.Math.EC.ECPoint q = domain.G.Multiply(d);
+//          //var pubKeyParameters = new Org.BouncyCastle.Crypto.Parameters.ECPublicKeyParameters(q, domain);
+//          return Convert.ToBase64String(q.GetEncoded());
+//    }
+    
+    
+    
     
     public static String privateKeyToBase64(ECPrivateKeyParameters key){
         return Base64.getEncoder().encodeToString(key.getD().toByteArray());
@@ -60,7 +105,7 @@ public class Util{
         return new ECPublicKeyParameters(point, domainParams);
     }
     
-    public static ECPrivateKeyParameters generateKey(){
+    public static AsymmetricCipherKeyPair generateKey(){
         //get params
         X9ECParameters curveParams = SECNamedCurves.getByName("secp256r1");
         ECDomainParameters domainParams = new ECDomainParameters(
@@ -70,8 +115,7 @@ public class Util{
         ECKeyGenerationParameters keyGenParams = new ECKeyGenerationParameters(domainParams, new SecureRandom());
         ECKeyPairGenerator generator = new ECKeyPairGenerator();
         generator.init(keyGenParams);
-        ECPrivateKeyParameters key = (ECPrivateKeyParameters) generator.generateKeyPair().getPrivate();
 
-        return key;
+        return generator.generateKeyPair();
     }
 }
