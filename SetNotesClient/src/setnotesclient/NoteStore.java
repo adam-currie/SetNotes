@@ -37,6 +37,7 @@ public class NoteStore{
     public NoteStore(String privateKeyStr){
         privateKey = Util.base64ToPrivateKey(privateKeyStr);
         publicKey = Util.publicKeyFromPrivate(privateKey);
+        String debug = Util.publicKeyToBase64(publicKey);
         try{
             url = new URL("http://intentclan.org:8080/SetNotesServer/NotesServlet");
         }catch(MalformedURLException ex){
