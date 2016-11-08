@@ -73,13 +73,12 @@ public class NoteStore{
         
         //params
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("noteId", "debug& p = %&d="+Long.toString(note.getNoteId()));
+        params.put("noteId", Long.toString(note.getNoteId()));
         params.put("createDate", note.getCreateDate());
         params.put("editDate", note.getEditDate());
         params.put("isDeleted", note.getDeleted());
         params.put("publicKey", Util.publicKeyToBase64(publicKey));
         
-        //todo: change all encoding in AESEncryption to base64 if it doesnt work
         String cipherText = aes.encrypt(note.getNoteBody());
         params.put("noteData", cipherText);//todo: sign
         
