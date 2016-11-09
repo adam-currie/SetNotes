@@ -43,7 +43,7 @@ public class NotesServlet extends HttpServlet{
             note.setIsDeleted(request.getParameter("isDeleted"));
             if(note.isDeleted()){
                 //todo: check signature
-                Database.delete(note.getNoteId());
+                Database.delete(note.getUserId(), note.getNoteId());
                 response.setStatus(HttpServletResponse.SC_OK);
             }else{
                 note.setNoteData(request.getParameter("noteData"));

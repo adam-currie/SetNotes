@@ -63,7 +63,7 @@ public class NoteStore{
                 //send to server
                 sendNote(note);
             }catch(IOException ex){
-                //todo: add to list of notes to be resent if connection cannot be made, save list locally
+                //todo: add to list of notes to be resent if connection cannot be made
             }
         });
         thread.start();
@@ -98,8 +98,7 @@ public class NoteStore{
         con.getOutputStream().write(postDataBytes);
         
         ///get response
-        int response = con.getResponseCode();
-        if(response != HttpURLConnection.HTTP_OK){
+        if(con.getResponseCode() != HttpURLConnection.HTTP_OK){
             //should be added to list of notes to be resent
             throw new IOException();
         }

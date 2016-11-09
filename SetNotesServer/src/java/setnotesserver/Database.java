@@ -29,7 +29,8 @@ class Database{
         try(Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD)) {
             
             
-            //todo: check that this notes edited date is after a note with the same id on the db
+            //todo: return if this notes edited date is before a note with the same id on the db
+            //todo: update instead of insert if note already exists
             
             PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO note (noteid,userid,creation,lastedited,notebody,deleted) VALUES (?, ?, ?, ?, ?, ?)");
@@ -48,7 +49,7 @@ class Database{
         }
     }
 
-    static void delete(long noteId) throws SQLException{
+    static void delete(String userId, long noteId) throws SQLException{
         if(driverLoaded == false){
             loadDriver();
         }
@@ -59,9 +60,10 @@ class Database{
             //todo: check that this notes edited date is after a note with the same id on the db
             
             PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE note SET deleted=FALSE WHERE note");//todo
+                    "UPDATE note SET deleted=TRUE AND notebody=NULL WHERE userid=? AND noteid=?");
             
-            //todo
+            statement.setString(1, userId);
+            statement.setLong(2, noteId);
             
             statement.execute();
             
