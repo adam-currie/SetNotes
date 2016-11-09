@@ -5,15 +5,15 @@
  */
 package setnotesclient;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,11 +70,41 @@ public class NoteStore{
         thread.start();
     }
     
+    public void delete(Note note){
+        note.setDeleted(true);
+        
+        Thread thread = new Thread(() -> {
+            try{
+                //todo: localdb
+                
+                //send to server
+                sendNote(note);
+            }catch(IOException ex){
+                //todo: add to list of notes to be resent if connection cannot be made
+            }
+        });
+        thread.start();
+    }
+
+    //returns all notes
+    public void getAllNotes(){
+       Thread thread = new Thread(() -> {
+            try{
+                //todo: use localdb
+                
+                //request from server
+                sendRequestAllNotes();
+            }catch(IOException ex){
+            }
+        });
+        thread.start();
+    }
+    
     private void sendNote(Note note) throws IOException{
         HttpURLConnection con  = (HttpURLConnection)url.openConnection();
         con.setRequestMethod("POST");
         con.setDoOutput(true);
-        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");        
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         
         //params
         Map<String,Object> params = new LinkedHashMap<>();
@@ -104,14 +134,39 @@ public class NoteStore{
             throw new IOException();
         }
     }
-    
-    public void delete(Note note){
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
-    //returns all notes
-    public List<Note> getNotes(){
-        throw new UnsupportedOperationException("Not supported yet.");
+    private void sendRequestAllNotes() throws IOException{        
+        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        
+        //params
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("publicKey", Util.publicKeyToBase64(publicKey));
+        
+        //todo: sign something
+        
+        StringBuilder postData = new StringBuilder();
+        for (Map.Entry<String,Object> param : params.entrySet()) {
+            if (postData.length() != 0) postData.append('&');
+            postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+            postData.append('=');
+            postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        }
+        byte[] postDataBytes = postData.toString().getBytes("UTF-8");
+        con.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+        con.getOutputStream().write(postDataBytes);
+        
+        try(BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))){
+            StringBuilder response = new StringBuilder();
+            
+            String line;
+            while((line = in.readLine()) != null){
+                response.append(line);
+            }
+            
+            //todo: use event listener to tell ui
+        }
     }
     
 }

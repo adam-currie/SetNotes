@@ -5,9 +5,7 @@
  */
 package shared;
 
-import java.lang.reflect.Array;
 import java.math.BigInteger;
-import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Base64;
 import org.bouncycastle.asn1.sec.SECNamedCurves;

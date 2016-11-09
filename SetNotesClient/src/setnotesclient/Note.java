@@ -50,6 +50,9 @@ public class Note{
     
     void setDeleted(Boolean isDeleted){
        this.isDeleted = isDeleted;
+       if(isDeleted){
+           noteBody = "deleted";
+       }
     }
     
     boolean getDeleted(){

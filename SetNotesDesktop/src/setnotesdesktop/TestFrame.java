@@ -35,9 +35,6 @@ public class TestFrame extends javax.swing.JFrame{
         jScrollPane1 = new javax.swing.JScrollPane();
         addNoteTextArea = new javax.swing.JTextArea();
         addButton = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        displayNotesTextArea = new javax.swing.JTextArea();
-        getButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -52,17 +49,6 @@ public class TestFrame extends javax.swing.JFrame{
             }
         });
 
-        displayNotesTextArea.setColumns(20);
-        displayNotesTextArea.setRows(5);
-        jScrollPane2.setViewportView(displayNotesTextArea);
-
-        getButton.setText("Get Notes");
-        getButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                getButtonActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -70,26 +56,19 @@ public class TestFrame extends javax.swing.JFrame{
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 680, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(addButton, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(getButton, javax.swing.GroupLayout.Alignment.TRAILING))))
+                        .addComponent(addButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(addButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(getButton)
                 .addContainerGap())
         );
 
@@ -100,18 +79,6 @@ public class TestFrame extends javax.swing.JFrame{
         Note note = new Note(addNoteTextArea.getText());
         noteStore.addOrUpdate(note);
     }//GEN-LAST:event_addButtonActionPerformed
-
-    private void getButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getButtonActionPerformed
-        List<Note> noteList = noteStore.getNotes();
-        
-        displayNotesTextArea.setText("");
-        
-        for(Note note : noteList){
-            displayNotesTextArea.append("Creation Date: " + note.getCreateDate() + "\n");
-            displayNotesTextArea.append("Edited Date: " + note.getCreateDate() + "\n");
-            displayNotesTextArea.append("Note Body: " + note.getCreateDate() + "\n\n\n");
-        }
-    }//GEN-LAST:event_getButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -156,9 +123,6 @@ public class TestFrame extends javax.swing.JFrame{
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JTextArea addNoteTextArea;
-    private javax.swing.JTextArea displayNotesTextArea;
-    private javax.swing.JButton getButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
 }
