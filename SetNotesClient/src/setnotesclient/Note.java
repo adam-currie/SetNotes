@@ -6,6 +6,7 @@
 package setnotesclient;
 
 import java.security.SecureRandom;
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -14,8 +15,8 @@ import java.util.Date;
  */
 public class Note{
     private long noteId;
-    private Date createDate;
-    private Date editDate;
+    private Timestamp createDate;
+    private Timestamp editDate;
     private String noteBody;
     private boolean isDeleted;
 
@@ -25,8 +26,8 @@ public class Note{
     public Note(String noteBody){
         this.noteBody = noteBody;
         noteId = new SecureRandom().nextLong();
-        createDate = new Date();
-        editDate = (Date)createDate.clone();
+        createDate = new Timestamp(System.currentTimeMillis());
+        editDate = new Timestamp(System.currentTimeMillis());
         isDeleted = false;
     }
     
@@ -39,11 +40,11 @@ public class Note{
     }
     
     //gets a copy of the creation date
-    public Date getCreateDate(){
-        return (Date)createDate.clone();
+    public Timestamp getCreateDate(){
+        return (Timestamp)createDate.clone();
     }
 
-    void setCreateDate(Date createDate){
+    void setCreateDate(Timestamp createDate){
         this.createDate = createDate;
     }
     
@@ -56,11 +57,11 @@ public class Note{
     }
     
     //gets a copy of the edit date
-    public Date getEditDate(){
-        return (Date)editDate.clone();
+    public Timestamp getEditDate(){
+        return (Timestamp)editDate.clone();
     }
 
-    void setEditDate(Date editDate){
+    void setEditDate(Timestamp editDate){
         this.editDate = editDate;
     }
 
@@ -70,7 +71,7 @@ public class Note{
 
     public void setNoteBody(String noteBody){
         this.noteBody = noteBody;
-        editDate = new Date();
+        editDate = new Timestamp(System.currentTimeMillis());
     }
     
 }

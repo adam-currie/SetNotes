@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,8 @@ public class NoteStore{
     private ECPublicKeyParameters publicKey;
     private final String URL_STR = "http://intentclan.org:8080/SetNotesServer/NotesServlet";
     URL url;
+    
+    static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     public NoteStore(String privateKeyStr){
         privateKey = Util.base64ToPrivateKey(privateKeyStr);
@@ -75,8 +78,8 @@ public class NoteStore{
         //params
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("noteId", Long.toString(note.getNoteId()));
-        params.put("createDate", note.getCreateDate());
-        params.put("editDate", note.getEditDate());
+        params.put("createDate", dateFormat.format(note.getCreateDate()));
+        params.put("editDate", dateFormat.format(note.getEditDate()));
         params.put("isDeleted", note.getDeleted());
         params.put("publicKey", Util.publicKeyToBase64(publicKey));
         
