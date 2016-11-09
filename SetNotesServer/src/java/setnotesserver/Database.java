@@ -29,7 +29,7 @@ class Database{
         try(Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD)) {
             
             
-            //todo: return if this notes edited date is before a note with the same id on the db
+            //todo: stop if this note's edit date is before a note with the same id on the db
             //todo: update instead of insert if note already exists
             
             PreparedStatement statement = connection.prepareStatement(
@@ -57,7 +57,7 @@ class Database{
         try(Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD)) {
             
             
-            //todo: check that this notes edited date is after a note with the same id on the db
+            //todo: stop if this note's edit date is before a note with the same id on the db
             
             PreparedStatement statement = connection.prepareStatement(
                     "UPDATE note SET deleted=TRUE AND notebody=NULL WHERE userid=? AND noteid=?");

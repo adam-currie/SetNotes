@@ -47,7 +47,7 @@ public class NoteStore{
             Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        //todo: possibly use different 
+        //todo: possibly use seperate key
         aes = new AESEncryption(privateKeyStr);
     }
     
@@ -60,6 +60,7 @@ public class NoteStore{
         Thread thread = new Thread(() -> {
             try{
                 //todo: localdb
+                
                 //send to server
                 sendNote(note);
             }catch(IOException ex){
@@ -84,7 +85,7 @@ public class NoteStore{
         params.put("publicKey", Util.publicKeyToBase64(publicKey));
         
         String cipherText = aes.encrypt(note.getNoteBody());
-        params.put("noteData", cipherText);//todo: sign
+        params.put("noteData", cipherText);//todo: sign data
         
         StringBuilder postData = new StringBuilder();
         for (Map.Entry<String,Object> param : params.entrySet()) {
