@@ -49,3 +49,6 @@ Temporary Items
 /SetNotesShared/dist/
 /SetNotesClient/dist/
 /SetNotesDesktop/dist/
+/SetNotesDesktop/build/
+/SetNotesClient/build/
+/SetNotesServer/build/
