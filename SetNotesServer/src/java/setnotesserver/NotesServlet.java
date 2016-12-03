@@ -5,9 +5,12 @@
  */
 package setnotesserver;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,10 +31,13 @@ public class NotesServlet extends HttpServlet{
     public String getServletInfo(){
         return "Set Notes Server";
     }// </editor-fold>
-    
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
         UserNote note = new UserNote();
+        
+        //debug
+        Map<String, String> params = getParameterMap(request);
         
         try{
             note.setCreateDate(request.getParameter("createDate"));
@@ -56,7 +62,6 @@ public class NotesServlet extends HttpServlet{
         }catch(SQLException ex){
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }   
-        
     }
 
     @Override
@@ -66,5 +71,41 @@ public class NotesServlet extends HttpServlet{
         
     }
     
-    
+    private static Map<String, String> getParameterMap(HttpServletRequest request) {
+        //debug
+        BufferedReader br = null;
+        Map<String, String> dataMap = null;
+
+        try {
+
+            InputStreamReader reader = new InputStreamReader(
+                    request.getInputStream());
+            br = new BufferedReader(reader);
+
+            String data = br.readLine();
+
+//            dataMap = Splitter.on('&')
+//                    .trimResults()
+//                    .withKeyValueSeparator(
+//                            Splitter.on('=')
+//                            .limit(2)
+//                            .trimResults())
+//                    .split(data);
+
+            return dataMap;
+        } catch (IOException ex) {
+            //todo
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                    //todo
+                }
+            }
+        }
+
+        return dataMap;
+    }
+
 }

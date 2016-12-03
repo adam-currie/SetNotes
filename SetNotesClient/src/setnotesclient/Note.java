@@ -7,7 +7,6 @@ package setnotesclient;
 
 import java.security.SecureRandom;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  *
@@ -20,11 +19,8 @@ public class Note{
     private String noteBody;
     private boolean isDeleted;
 
-    Note(){
-    }
-    
-    public Note(String noteBody){
-        this.noteBody = noteBody;
+    public Note(){
+        noteBody = "";
         noteId = new SecureRandom().nextLong();
         createDate = new Timestamp(System.currentTimeMillis());
         editDate = new Timestamp(System.currentTimeMillis());
@@ -49,10 +45,14 @@ public class Note{
     }
     
     void setDeleted(Boolean isDeleted){
-       this.isDeleted = isDeleted;
-       if(isDeleted){
-           noteBody = "deleted";
-       }
+        if(this.isDeleted == isDeleted){
+            return;
+        }
+        
+        this.isDeleted = isDeleted;
+        if(isDeleted){
+            noteBody = "deleted";
+        }
     }
     
     boolean getDeleted(){
@@ -73,6 +73,10 @@ public class Note{
     }
 
     public void setNoteBody(String noteBody){
+        if(this.noteBody.equals(noteBody)){
+            return;
+        }
+        
         this.noteBody = noteBody;
         editDate = new Timestamp(System.currentTimeMillis());
     }

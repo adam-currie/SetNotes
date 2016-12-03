@@ -5,22 +5,42 @@
  */
 package setnotesdesktop;
 
+import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.BoxLayout;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import setnotesclient.NoteStore;
 
 /**
  *
  * @author Adam
  */
 public class MainNotesJFrame extends javax.swing.JFrame{
+    
+    private final String KEY_PATH = "key.sav";
+    private NoteStore notes = null;
+
+    public NoteStore getNoteStore(){
+        return notes;
+    }
 
     /**
      * Creates new form MainNotesJFrame
      */
     public MainNotesJFrame(){
         initComponents();
+        
+        BoxLayout listLayout = new BoxLayout(notesListPanel, BoxLayout.Y_AXIS);
+        notesListPanel.setLayout(listLayout);
     }
 
     /**
@@ -34,27 +54,33 @@ public class MainNotesJFrame extends javax.swing.JFrame{
 
         jPanel1 = new javax.swing.JPanel();
         addButton = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        notesList = new javax.swing.JList();
+        notesScrollPane = new javax.swing.JScrollPane();
+        notesListPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         changePassButton = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(380, 340));
 
         addButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/setnotesdesktop/img/plusbutton.png"))); // NOI18N
-        addButton.setToolTipText("delete");
+        addButton.setToolTipText(null);
         addButton.setBorder(null);
         addButton.setContentAreaFilled(false);
         addButton.setPreferredSize(new java.awt.Dimension(32, 32));
+        addButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(598, Short.MAX_VALUE)
                 .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -63,15 +89,15 @@ public class MainNotesJFrame extends javax.swing.JFrame{
             .addComponent(addButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        notesList.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jScrollPane1.setViewportView(notesList);
+        notesListPanel.setLayout(new javax.swing.BoxLayout(notesListPanel, javax.swing.BoxLayout.LINE_AXIS));
+        notesScrollPane.setViewportView(notesListPanel);
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
 
         jMenu2.setText("Edit");
 
-        changePassButton.setText("Change Password");
+        changePassButton.setText("Change Private Key");
         changePassButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 changePassButtonActionPerformed(evt);
@@ -88,30 +114,40 @@ public class MainNotesJFrame extends javax.swing.JFrame{
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 632, Short.MAX_VALUE)
+            .addComponent(notesScrollPane, javax.swing.GroupLayout.Alignment.TRAILING)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE))
+                .addComponent(notesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 647, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void changePassButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_changePassButtonActionPerformed
-        PasswordJPanel passPanel = new PasswordJPanel();
-        
-        JDialog dlg = new JDialog(this, "Change Password", Dialog.ModalityType.APPLICATION_MODAL);
-        dlg.add(passPanel);
-        dlg.setResizable(false);
-        dlg.pack();
-        dlg.setLocationRelativeTo(null);//center
-        dlg.setVisible(true);
+        showKeyChangeDlg();
     }//GEN-LAST:event_changePassButtonActionPerformed
 
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        NoteJPanel note = new NoteJPanel(this);
+        notesListPanel.add(note);
+        notesListPanel.revalidate();
+    }//GEN-LAST:event_addButtonActionPerformed
+
+    //returns true if password was valid and updates, false otherwise
+    public boolean changePassword(String password){
+        if(NoteStore.checkKeyValid(password)){
+            notes = new NoteStore(password);
+            savePassword(password);
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -151,10 +187,12 @@ public class MainNotesJFrame extends javax.swing.JFrame{
                 MainNotesJFrame frame = new MainNotesJFrame();
                 frame.setLocationRelativeTo(null);//center
                 frame.setVisible(true);
+                
+                frame.initNoteStore();
             }
         });
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JMenuItem changePassButton;
@@ -162,7 +200,64 @@ public class MainNotesJFrame extends javax.swing.JFrame{
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList notesList;
+    private javax.swing.JPanel notesListPanel;
+    private javax.swing.JScrollPane notesScrollPane;
     // End of variables declaration//GEN-END:variables
+    
+    private void showKeyChangeDlg(){
+        ChangeKeyJPanel keyPanel = new ChangeKeyJPanel(this);
+        
+        JDialog dlg = new JDialog(this, "Change Private Key", Dialog.ModalityType.APPLICATION_MODAL);
+        dlg.add(keyPanel);
+        dlg.setResizable(false);
+        dlg.pack();
+        dlg.setLocationRelativeTo(null);//center
+        dlg.setVisible(true);
+    }
+    
+    private void savePassword(String password){
+        try (PrintWriter out = new PrintWriter(KEY_PATH)) {
+            out.println(password);
+        }catch(FileNotFoundException ex){
+            Logger.getLogger(MainNotesJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(1);
+        }
+    }
+
+    //returns null if password cannot be found
+    private String loadPassword(){
+        try (BufferedReader br = new BufferedReader(new FileReader(KEY_PATH))) {
+            return br.readLine();
+        }catch(FileNotFoundException ex){
+            return null;
+        }catch(IOException ex){
+            return null;
+        }
+    }
+
+    private void initNoteStore(){
+        String key = loadPassword();
+        if(NoteStore.checkKeyValid(key)){
+            notes = new NoteStore(key);
+        }else{
+            
+            while(true){
+                showKeyChangeDlg();
+                if(notes == null){
+                    int result = JOptionPane.showConfirmDialog(this, "A key is required to use this application.", "Key Required", JOptionPane.OK_CANCEL_OPTION);
+                    if(result == JOptionPane.CANCEL_OPTION){
+                        System.exit(0);
+                    }
+                }else{
+                    break;
+                }
+            }
+            
+        }
+        
+        //load notes
+        //notes.getAllNotes();
+        //todo
+        
+    }
 }

@@ -5,17 +5,52 @@
  */
 package setnotesdesktop;
 
+import java.awt.Container;
+import java.text.SimpleDateFormat;
+import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import jdk.nashorn.internal.runtime.Debug;
+import setnotesclient.Note;
+
 /**
  *
  * @author Adam
  */
 public class NoteJPanel extends javax.swing.JPanel{
+    
+    private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private MainNotesJFrame mainFrame;
+    private Note note;
 
     /**
      * Creates new form NoteJPanel
      */
-    public NoteJPanel(){
+    public NoteJPanel(MainNotesJFrame mainFrame){
         initComponents();
+        this.mainFrame = mainFrame;
+        
+        note = new Note();
+        createdLabel.setText("created: " + dateFormat.format(note.getCreateDate()));
+        editedLabel.setText("");
+        
+        confirmPanel.setVisible(true);
+        saveButton.setVisible(false);
+        
+        noteTextArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e){
+                noteTextChanged();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e){
+                noteTextChanged();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e){
+                noteTextChanged();
+            }
+        });
     }
 
     /**
@@ -31,12 +66,16 @@ public class NoteJPanel extends javax.swing.JPanel{
         noteTextArea = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         deleteButton = new javax.swing.JButton();
-        editButton = new javax.swing.JButton();
         createdLabel = new javax.swing.JLabel();
         editedLabel = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
+        confirmPanel = new javax.swing.JPanel();
         cancelButton = new javax.swing.JButton();
-        saveNoteButton = new javax.swing.JButton();
+        saveButton = new javax.swing.JButton();
+
+        setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        setMaximumSize(new java.awt.Dimension(99999, 190));
+        setMinimumSize(new java.awt.Dimension(300, 190));
+        setPreferredSize(new java.awt.Dimension(300, 190));
 
         noteTextArea.setColumns(20);
         noteTextArea.setRows(5);
@@ -49,12 +88,11 @@ public class NoteJPanel extends javax.swing.JPanel{
         deleteButton.setBorder(null);
         deleteButton.setContentAreaFilled(false);
         deleteButton.setPreferredSize(new java.awt.Dimension(32, 32));
-
-        editButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/setnotesdesktop/img/editbutton.png"))); // NOI18N
-        editButton.setToolTipText("delete");
-        editButton.setBorder(null);
-        editButton.setContentAreaFilled(false);
-        editButton.setPreferredSize(new java.awt.Dimension(32, 32));
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
 
         createdLabel.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         createdLabel.setText("created: 2016-9-26");
@@ -69,89 +107,139 @@ public class NoteJPanel extends javax.swing.JPanel{
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(createdLabel)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(editedLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(editButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
                 .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(editButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(createdLabel)
-                            .addComponent(editedLabel))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(createdLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(editedLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
-        jPanel2.setPreferredSize(new java.awt.Dimension(32, 32));
+        confirmPanel.setPreferredSize(new java.awt.Dimension(73, 32));
 
-        cancelButton.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         cancelButton.setText("cancel");
-        cancelButton.setAlignmentX(0.5F);
-        cancelButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        cancelButton.setPreferredSize(new java.awt.Dimension(73, 25));
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
 
-        saveNoteButton.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        saveNoteButton.setText("save");
-        saveNoteButton.setAlignmentX(0.5F);
-        saveNoteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        saveButton.setText("save");
+        saveButton.setPreferredSize(new java.awt.Dimension(73, 25));
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout confirmPanelLayout = new javax.swing.GroupLayout(confirmPanel);
+        confirmPanel.setLayout(confirmPanelLayout);
+        confirmPanelLayout.setHorizontalGroup(
+            confirmPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, confirmPanelLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(saveNoteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addGap(0, 3, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(saveNoteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(3, 3, 3))
+        confirmPanelLayout.setVerticalGroup(
+            confirmPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(confirmPanelLayout.createSequentialGroup()
+                .addGap(3, 3, 3)
+                .addGroup(confirmPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 4, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 441, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 296, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(confirmPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 296, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(confirmPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        //todo: confirm, with dont show again checkbox
+        mainFrame.getNoteStore().delete(note);
+        Container parent = getParent();
+        parent.remove(this);
+        parent.revalidate();
+        parent.repaint();
+    }//GEN-LAST:event_deleteButtonActionPerformed
+
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
+        if (note.getNoteBody().isEmpty()) {
+            //remove component because not was never created
+            Container parent = getParent();
+            parent.remove(this);
+            parent.revalidate();
+            parent.repaint();
+        }
+        
+        confirmPanel.setVisible(false);
+        noteTextArea.setText(note.getNoteBody());
+    }//GEN-LAST:event_cancelButtonActionPerformed
+
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        note.setNoteBody(noteTextArea.getText());
+        editedLabel.setText("edited: " + dateFormat.format(note.getEditDate()));
+        mainFrame.getNoteStore().addOrUpdate(note);
+        confirmPanel.setVisible(false);
+    }//GEN-LAST:event_saveButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
+    private javax.swing.JPanel confirmPanel;
     private javax.swing.JLabel createdLabel;
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton editButton;
     private javax.swing.JLabel editedLabel;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea noteTextArea;
-    private javax.swing.JButton saveNoteButton;
+    private javax.swing.JButton saveButton;
     // End of variables declaration//GEN-END:variables
+    
+    private void noteTextChanged(){
+        String text = noteTextArea.getText();
+        
+        if(text.equals(note.getNoteBody())){
+            if(text.equals("")){
+                //keep cancel but hide save
+                confirmPanel.setVisible(true);
+                saveButton.setVisible(false);
+            }else{
+                //hide confirm panel
+                confirmPanel.setVisible(false);
+            }
+        }else{
+            //show confirm panel
+            confirmPanel.setVisible(true);
+            saveButton.setVisible(true);
+        }
+    }
+    
 }

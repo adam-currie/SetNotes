@@ -5,16 +5,26 @@
  */
 package setnotesdesktop;
 
+import java.awt.Window;
+import java.awt.event.WindowEvent;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import setnotesclient.NoteStore;
+import sun.java2d.d3d.D3DRenderQueue;
+
 /**
  *
  * @author Adam
  */
-public class PasswordJPanel extends javax.swing.JPanel{
+public class ChangeKeyJPanel extends javax.swing.JPanel{
+    
+    private MainNotesJFrame mainFrame;
 
     /**
      * Creates new form PasswordJPanel
      */
-    public PasswordJPanel(){
+    public ChangeKeyJPanel(MainNotesJFrame mainFrame){
+        this.mainFrame = mainFrame;
         initComponents();
     }
 
@@ -40,16 +50,31 @@ public class PasswordJPanel extends javax.swing.JPanel{
         setPreferredSize(new java.awt.Dimension(340, 152));
 
         cancelButton.setText("cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
 
         okButton.setText("ok");
+        okButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                okButtonActionPerformed(evt);
+            }
+        });
 
         generateButton.setText("generate");
+        generateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generateButtonActionPerformed(evt);
+            }
+        });
 
-        jLabel1.setText("Click Generate to create a new password or enter a ");
+        jLabel1.setText("Click Generate to create a new private key or enter a ");
 
         jLabel2.setText("previously generated one.");
 
-        jLabel3.setText("Creating your own password is unsupported.");
+        jLabel3.setText("Creating your own key is unsupported.");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -90,6 +115,28 @@ public class PasswordJPanel extends javax.swing.JPanel{
                 .addContainerGap(35, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
+        String key = passwordField.getText();
+        
+        if(mainFrame.changePassword(key)){
+            //close after successfully changing the key
+            Window window = SwingUtilities.getWindowAncestor(this);
+            window.dispose();
+        }else{
+            JOptionPane.showMessageDialog(this, "The provided key is invalid.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }//GEN-LAST:event_okButtonActionPerformed
+
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
+        Window window = SwingUtilities.getWindowAncestor(this);
+        window.dispose();
+    }//GEN-LAST:event_cancelButtonActionPerformed
+
+    private void generateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generateButtonActionPerformed
+        passwordField.setText(NoteStore.generateKey());
+    }//GEN-LAST:event_generateButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

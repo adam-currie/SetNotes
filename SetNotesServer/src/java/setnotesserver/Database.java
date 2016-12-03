@@ -60,7 +60,7 @@ class Database{
             //todo: stop if this note's edit date is before a note with the same id on the db
             
             PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE note SET deleted=TRUE AND notebody=NULL WHERE userid=? AND noteid=?");
+                    "UPDATE note SET deleted=TRUE, notebody=NULL WHERE userid=? AND noteid=?");
             
             statement.setString(1, userId);
             statement.setLong(2, noteId);
