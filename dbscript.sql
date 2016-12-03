@@ -1,15 +1,14 @@
+USE notedb;
 DROP TABLE note;
 
-CREATE DATABASE notedb;
-USE notedb;
 CREATE TABLE note (
 	noteid BIGINT SIGNED,
     userid VARCHAR(44),
-    creation TIMESTAMP,
-    lastedited TIMESTAMP,
+    creation DATETIME,
+    lastedited DATETIME,
     deleted BOOL,
     notebody TEXT,
-    PRIMARY KEY (noteid)
+    PRIMARY KEY (userid, noteid)
 );
 
 

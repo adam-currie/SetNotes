@@ -33,7 +33,8 @@ class Database{
             //todo: update instead of insert if note already exists
             
             PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO note (noteid,userid,creation,lastedited,notebody,deleted) VALUES (?, ?, ?, ?, ?, ?)");
+                    "INSERT INTO note (noteid,userid,creation,lastedited,notebody,deleted) VALUES (?, ?, ?, ?, ?, ?) " + 
+                    "ON DUPLICATE KEY UPDATE lastedited=VALUES(lastedited), notebody=VALUES(notebody), deleted=VALUES(deleted)");
             
             statement.setLong(1, note.getNoteId());
             statement.setString(2, note.getUserId());

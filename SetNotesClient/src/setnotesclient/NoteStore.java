@@ -5,7 +5,9 @@
  */
 package setnotesclient;
 
+import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -22,6 +24,19 @@ import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import shared.Util;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import java.io.File;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 
 /**
  *
@@ -119,35 +134,69 @@ public class NoteStore{
         HttpURLConnection con = (HttpURLConnection)url.openConnection();
         con.setRequestMethod("PUT");
         con.setDoOutput(true);
-        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setRequestProperty("Content-Type", "application/xml");
 
-        //params
-        Map<String, Object> params = new LinkedHashMap<>();
-        params.put("noteId", Long.toString(note.getNoteId()));
-        params.put("createDate", dateFormat.format(note.getCreateDate()));
-        params.put("editDate", dateFormat.format(note.getEditDate()));
-        params.put("isDeleted", note.getDeleted());
-        params.put("publicKey", Util.publicKeyToBase64(publicKey));
-
-        String cipherText = aes.encrypt(note.getNoteBody());
-        params.put("noteData", cipherText);//todo: sign data
-
-        StringBuilder data = new StringBuilder();
-        for(Map.Entry<String, Object> param : params.entrySet()){
-            if(data.length() != 0){
-                data.append('&');
-            }
-            data.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-            data.append('=');
-            data.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        
+        
+        Document doc = null;
+        try{
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder;
+            dBuilder = dbFactory.newDocumentBuilder();
+            doc = dBuilder.newDocument();
+        }catch(ParserConfigurationException ex){
+            Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(1);
         }
-        byte[] dataBytes = data.toString().getBytes("UTF-8");
+        
+        //add xml elements
+        Element root = doc.createElement("note");
+        doc.appendChild(root);
+        
+        Element noteId = doc.createElement("noteId");
+        noteId.appendChild(doc.createTextNode(Long.toString(note.getNoteId())));
+        root.appendChild(noteId);
+        
+        Element createDate = doc.createElement("createDate");
+        createDate.appendChild(doc.createTextNode(dateFormat.format(note.getCreateDate())));
+        root.appendChild(createDate);
+        
+        Element editDate = doc.createElement("editDate");
+        editDate.appendChild(doc.createTextNode(dateFormat.format(note.getEditDate())));
+        root.appendChild(editDate);
+        
+        Element isDeleted = doc.createElement("isDeleted");
+        isDeleted.appendChild(doc.createTextNode(String.valueOf(note.getDeleted())));
+        root.appendChild(isDeleted);
+        
+        Element publicKeyNode = doc.createElement("publicKey");
+        publicKeyNode.appendChild(doc.createTextNode(Util.publicKeyToBase64(publicKey)));
+        root.appendChild(publicKeyNode);
+        
+        Element noteDataNode = doc.createElement("noteData");
+        noteDataNode.appendChild(doc.createTextNode(aes.encrypt(note.getNoteBody())));//todo: sign data
+        root.appendChild(noteDataNode);
+        
+        //get data bytes
+        byte[] dataBytes = {};
+        try{
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            StreamResult res = new StreamResult(bos);
+            transformer.transform(new DOMSource(doc), res);
+            dataBytes = bos.toByteArray();
+        }catch(TransformerException ex){
+        }
+        
+        //send data
         con.setRequestProperty("Content-Length", String.valueOf(dataBytes.length));
         con.getOutputStream().write(dataBytes);
 
         ///get response
         if(con.getResponseCode() != HttpURLConnection.HTTP_OK){
-            //should be added to list of notes to be resent
+            //should be added to list of notes to be resent, probably where this is caught
             throw new IOException();
         }
     }

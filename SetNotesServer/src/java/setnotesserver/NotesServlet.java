@@ -5,16 +5,22 @@
  */
 package setnotesserver;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Map;
+import java.util.zip.DataFormatException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -33,31 +39,21 @@ public class NotesServlet extends HttpServlet{
     }// </editor-fold>
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-        UserNote note = new UserNote();
-        
-        //debug
-        Map<String, String> params = getParameterMap(request);
-        
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{        
+        //todo
         try{
-            note.setCreateDate(request.getParameter("createDate"));
-            note.setEditDate(request.getParameter("editDate"));
-            note.setNoteId(request.getParameter("noteId"));
-            note.setUserId(request.getParameter("publicKey"));
-            note.setIsDeleted(request.getParameter("isDeleted"));
+            UserNote note = getNoteFromRequest(request);
+            
             if(note.isDeleted()){
                 //todo: check signature
                 Database.delete(note.getUserId(), note.getNoteId());
                 response.setStatus(HttpServletResponse.SC_OK);
             }else{
-                note.setNoteData(request.getParameter("noteData"));
                 //todo: check signature
                 Database.addOrUpdate(note);
                 response.setStatus(HttpServletResponse.SC_OK);
             }
-            
-            
-        }catch(ParseException | NullPointerException ex){
+        }catch(DataFormatException ex){
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }catch(SQLException ex){
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -71,41 +67,35 @@ public class NotesServlet extends HttpServlet{
         
     }
     
-    private static Map<String, String> getParameterMap(HttpServletRequest request) {
-        //debug
-        BufferedReader br = null;
-        Map<String, String> dataMap = null;
+    private static UserNote getNoteFromRequest(HttpServletRequest request) throws DataFormatException{
+        try{
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(request.getInputStream());
+            Element noteNode = doc.getDocumentElement();
 
-        try {
+            UserNote note = new UserNote();
+            Node createNode = noteNode.getElementsByTagName("createDate").item(0);
+            Node editNode = noteNode.getElementsByTagName("editDate").item(0);
+            Node idNode = noteNode.getElementsByTagName("noteId").item(0);
+            Node keyNode = noteNode.getElementsByTagName("publicKey").item(0);
+            Node deletedNode = noteNode.getElementsByTagName("isDeleted").item(0);
+            Node noteDataNode = noteNode.getElementsByTagName("noteData").item(0);
 
-            InputStreamReader reader = new InputStreamReader(
-                    request.getInputStream());
-            br = new BufferedReader(reader);
-
-            String data = br.readLine();
-
-//            dataMap = Splitter.on('&')
-//                    .trimResults()
-//                    .withKeyValueSeparator(
-//                            Splitter.on('=')
-//                            .limit(2)
-//                            .trimResults())
-//                    .split(data);
-
-            return dataMap;
-        } catch (IOException ex) {
-            //todo
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException ex) {
-                    //todo
-                }
+            note.setCreateDate(createNode.getTextContent());
+            note.setEditDate(editNode.getTextContent());
+            note.setNoteId(idNode.getTextContent());
+            note.setUserId(keyNode.getTextContent());
+            note.setIsDeleted(deletedNode.getTextContent());
+            if(!note.isDeleted()){
+                note.setNoteData(noteDataNode.getTextContent());
             }
+            
+            return note;
+        }catch(ParserConfigurationException | IOException | SAXException | DOMException | ParseException | NullPointerException | NumberFormatException ex){
+            throw new DataFormatException();
         }
-
-        return dataMap;
     }
 
 }

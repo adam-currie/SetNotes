@@ -77,7 +77,7 @@ class AESEncryption{
         int numBytesRead;        //number of bytes read from input
         int numBytesProcessed;   //number of bytes processed
         byte[] buf = new byte[16];
-        byte[] obuf = new byte[16];
+        byte[] obuf = new byte[32];
         try{
             while ((numBytesRead = in.read(buf)) >= 0) {
                 numBytesProcessed = encryptCipher.processBytes(buf, 0, numBytesRead, obuf, 0);
