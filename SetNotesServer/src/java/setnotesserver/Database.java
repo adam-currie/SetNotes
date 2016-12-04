@@ -34,8 +34,8 @@ class Database{
             //todo: stop if this note's edit date is before a note with the same id on the db
             
             PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO note (noteid,userid,creation,lastedited,notebody,deleted) VALUES (?, ?, ?, ?, ?, ?) " + 
-                    "ON DUPLICATE KEY UPDATE lastedited=VALUES(lastedited), notebody=VALUES(notebody), deleted=VALUES(deleted)");
+                    "INSERT INTO note (noteid,userid,creation,lastedited,notebody,deleted,signature) VALUES (?, ?, ?, ?, ?, ?, ?) " + 
+                    "ON DUPLICATE KEY UPDATE lastedited=VALUES(lastedited), notebody=VALUES(notebody), deleted=VALUES(deleted), signature=VALUES(signature)");
             
             statement.setLong(1, note.getNoteId());
             statement.setString(2, note.getUserId());
@@ -43,6 +43,7 @@ class Database{
             statement.setTimestamp(4, note.getEditDate());
             statement.setString(5, note.getNoteBody());
             statement.setBoolean(6, false);
+            statement.setString(7, note.getSignature());
             
             statement.execute();
             
@@ -51,7 +52,7 @@ class Database{
         }
     }
 
-    static void delete(String userId, long noteId) throws SQLException{
+    static void delete(String userId, long noteId, String signature) throws SQLException{
         if(driverLoaded == false){
             loadDriver();
         }
@@ -61,10 +62,11 @@ class Database{
             //todo: stop if this note's edit date is before a note with the same id on the db
             
             PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE note SET deleted=TRUE, notebody=NULL WHERE userid=? AND noteid=?");
+                    "UPDATE note SET deleted=TRUE, notebody=NULL, signature=? WHERE userid=? AND noteid=?");
             
-            statement.setString(1, userId);
-            statement.setLong(2, noteId);
+            statement.setString(1, signature);
+            statement.setString(2, userId);
+            statement.setLong(3, noteId);
             
             statement.execute();
             
@@ -103,6 +105,7 @@ class Database{
                 note.setEditDate(results.getTimestamp("lastedited"));
                 note.setNoteBody(results.getString("notebody"));
                 note.setIsDeleted(results.getBoolean("deleted"));
+                note.setSignature(results.getString("signature"));
                 
                 notes.add(note);
             }

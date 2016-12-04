@@ -8,6 +8,7 @@ CREATE TABLE note (
     lastedited DATETIME,
     deleted BOOL,
     notebody TEXT,
+    signature TEXT,
     PRIMARY KEY (userid, noteid)
 );
 

@@ -9,6 +9,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -29,11 +31,13 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+import shared.Util;
 
 /**
  *
@@ -57,19 +61,17 @@ public class NotesServlet extends HttpServlet{
             UserNote note = getNoteFromRequest(request);
             
             if(note.isDeleted()){
-                //todo: check signature
-                Database.delete(note.getUserId(), note.getNoteId());
+                Database.delete(note.getUserId(), note.getNoteId(), note.getSignature());
                 response.setStatus(HttpServletResponse.SC_OK);
             }else{
-                //todo: check signature
                 Database.addOrUpdate(note);
                 response.setStatus(HttpServletResponse.SC_OK);
             }
-        }catch(DataFormatException ex){
+        }catch(DataFormatException | SignatureException | InvalidKeyException ex){
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }catch(SQLException ex){
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }   
+        }
     }
 
     @Override
@@ -107,52 +109,60 @@ public class NotesServlet extends HttpServlet{
         dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.newDocument();
         
-        Element root = doc.createElement("notes");
-        doc.appendChild(root);
+        Element noteListRootNode = doc.createElement("notes");
+        doc.appendChild(noteListRootNode);
         
-        for(UserNote note : notes){
-            Element noteNode = doc.createElement("note");
-            
-            //add fields
-            Element noteId = doc.createElement("noteId");
-            noteId.appendChild(doc.createTextNode(Long.toString(note.getNoteId())));
-            noteNode.appendChild(noteId);
+        for(UserNote userNote : notes){
+            //NOTE ROOT
+            Element noteRootNode = doc.createElement("noteRoot");
+                //NOTE
+                Element noteNode = doc.createElement("note");
+                    Element noteId = doc.createElement("noteId");
+                    noteId.appendChild(doc.createTextNode(Long.toString(userNote.getNoteId())));
+                    noteNode.appendChild(noteId);
 
-            Element createDate = doc.createElement("createDate");
-            createDate.appendChild(doc.createTextNode(note.getCreateDateString()));
-            noteNode.appendChild(createDate);
+                    Element createDate = doc.createElement("createDate");
+                    createDate.appendChild(doc.createTextNode(userNote.getCreateDateString()));
+                    noteNode.appendChild(createDate);
 
-            Element editDate = doc.createElement("editDate");
-            editDate.appendChild(doc.createTextNode(note.getEditDateString()));
-            noteNode.appendChild(editDate);
+                    Element editDate = doc.createElement("editDate");
+                    editDate.appendChild(doc.createTextNode(userNote.getEditDateString()));
+                    noteNode.appendChild(editDate);
 
-            Element isDeleted = doc.createElement("isDeleted");
-            isDeleted.appendChild(doc.createTextNode(String.valueOf(note.isDeleted())));
-            noteNode.appendChild(isDeleted);
+                    Element isDeleted = doc.createElement("isDeleted");
+                    isDeleted.appendChild(doc.createTextNode(String.valueOf(userNote.isDeleted())));
+                    noteNode.appendChild(isDeleted);
 
-            Element publicKeyNode = doc.createElement("publicKey");
-            publicKeyNode.appendChild(doc.createTextNode(note.getUserId()));
-            noteNode.appendChild(publicKeyNode);
-            
-            if(note.getNoteBody() != null && !note.getNoteBody().isEmpty()){
-                Element noteDataNode = doc.createElement("noteData");
-                noteDataNode.appendChild(doc.createTextNode(note.getNoteBody()));
-                noteNode.appendChild(noteDataNode);
-            }
-            
-            root.appendChild(noteNode);
+                    Element publicKeyNode = doc.createElement("publicKey");
+                    publicKeyNode.appendChild(doc.createTextNode(userNote.getUserId()));
+                    noteNode.appendChild(publicKeyNode);
+
+                    if(userNote.getNoteBody() != null && !userNote.getNoteBody().isEmpty()){
+                        Element noteDataNode = doc.createElement("noteData");
+                        noteDataNode.appendChild(doc.createTextNode(userNote.getNoteBody()));
+                        noteNode.appendChild(noteDataNode);
+                    }
+                noteRootNode.appendChild(noteNode);
+                
+                //SIGNATURE
+                Element signatureNode = doc.createElement("signature");
+                    signatureNode.appendChild(doc.createTextNode(userNote.getSignature()));
+                noteRootNode.appendChild(signatureNode);
+            noteListRootNode.appendChild(noteRootNode);
         }
         
         return doc;
     }
     
-    private static UserNote getNoteFromRequest(HttpServletRequest request) throws DataFormatException{
+    private static UserNote getNoteFromRequest(HttpServletRequest request) throws DataFormatException, SignatureException, InvalidKeyException{
         try{
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(request.getInputStream());
-            Element noteNode = doc.getDocumentElement();
+            Element root = doc.getDocumentElement();
+            Element noteNode = (Element)root.getElementsByTagName("note").item(0);
+            Element signatureNode = (Element)root.getElementsByTagName("signature").item(0);
 
             UserNote note = new UserNote();
             Node createNode = noteNode.getElementsByTagName("createDate").item(0);
@@ -160,16 +170,25 @@ public class NotesServlet extends HttpServlet{
             Node idNode = noteNode.getElementsByTagName("noteId").item(0);
             Node deletedNode = noteNode.getElementsByTagName("isDeleted").item(0);
             Node noteDataNode = noteNode.getElementsByTagName("noteData").item(0);
-
+            Node userIdNode = noteNode.getElementsByTagName("publicKey").item(0);
+            
+            note.setUserId(userIdNode.getTextContent());
             note.setCreateDate(createNode.getTextContent());
             note.setEditDate(editNode.getTextContent());
             note.setNoteId(idNode.getTextContent());
             note.setIsDeleted(deletedNode.getTextContent());
+            note.setSignature(signatureNode.getTextContent());
             if(!note.isDeleted()){
                 note.setNoteBody(noteDataNode.getTextContent());
             }
             
-            return note;
+            //check signature
+            ECPublicKeyParameters key = Util.base64ToPublicKey(note.getUserId());
+            if(Util.CheckSignature(key, noteNode.getTextContent(), note.getSignature())){
+                return note;
+            }else{
+                throw new SignatureException("Invalid signature.");
+            }
         }catch(ParserConfigurationException | IOException | SAXException | DOMException | ParseException | NullPointerException | NumberFormatException ex){
             throw new DataFormatException();
         }

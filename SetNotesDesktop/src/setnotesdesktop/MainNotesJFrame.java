@@ -144,6 +144,9 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
         if(NoteStore.checkKeyValid(password)){
             notes = new NoteStore(password, this);
             savePassword(password);
+            notesListPanel.removeAll();//todo:check
+            notesListPanel.revalidate();
+            notesListPanel.repaint();
             return true;
         }else{
             return false;
@@ -264,7 +267,6 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
             for(Note note : notes){                
                 NoteJPanel notePanel = new NoteJPanel(note, this);
                 notesListPanel.add(notePanel);
-                notesListPanel.revalidate();
             }
             notesListPanel.revalidate();
         });

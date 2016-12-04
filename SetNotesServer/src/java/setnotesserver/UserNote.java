@@ -19,6 +19,7 @@ class UserNote{
     private Timestamp createDate;
     private Timestamp editDate;
     private String noteData;
+    private String signature;
     private boolean isDeleted;
     
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -87,6 +88,14 @@ class UserNote{
 
     public void setNoteBody(String noteBody) {
         this.noteData = noteBody;
+    }
+    
+    public String getSignature(){
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 
     public boolean isDeleted(){

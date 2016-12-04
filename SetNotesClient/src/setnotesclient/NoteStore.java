@@ -12,6 +12,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,7 +65,12 @@ public class NoteStore{
         
         listener = noteListener;
 
-        privateKey = Util.base64ToPrivateKey(privateKeyStr);
+        try{
+            privateKey = Util.base64ToPrivateKey(privateKeyStr);
+        }catch(InvalidKeyException ex){
+            throw new IllegalArgumentException("Private key invalid.");
+        }
+        
         publicKey = Util.publicKeyFromPrivate(privateKey);
         
         try{
@@ -130,6 +137,7 @@ public class NoteStore{
                 sendRequestAllNotes();
             }catch(IOException ex){
                 //todo: check again later
+                Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
         thread.start();
@@ -151,33 +159,41 @@ public class NoteStore{
             System.exit(1);
         }
         
-        //add xml elements
-        Element root = doc.createElement("note");
+        //NOTE ROOT
+        Element root = doc.createElement("noteRoot");
+            //NOTE
+            Element noteNode = doc.createElement("note");
+                Element noteId = doc.createElement("noteId");
+                noteId.appendChild(doc.createTextNode(Long.toString(note.getNoteId())));
+                noteNode.appendChild(noteId);
+
+                Element createDate = doc.createElement("createDate");
+                createDate.appendChild(doc.createTextNode(dateFormat.format(note.getCreateDate())));
+                noteNode.appendChild(createDate);
+
+                Element editDate = doc.createElement("editDate");
+                editDate.appendChild(doc.createTextNode(dateFormat.format(note.getEditDate())));
+                noteNode.appendChild(editDate);
+
+                Element isDeleted = doc.createElement("isDeleted");
+                isDeleted.appendChild(doc.createTextNode(String.valueOf(note.getDeleted())));
+                noteNode.appendChild(isDeleted);
+
+                Element publicKeyNode = doc.createElement("publicKey");
+                String keyStr = Util.publicKeyToBase64(publicKey);
+                publicKeyNode.appendChild(doc.createTextNode(keyStr));
+                noteNode.appendChild(publicKeyNode);
+
+                Element noteDataNode = doc.createElement("noteData");
+                noteDataNode.appendChild(doc.createTextNode(aes.encrypt(note.getNoteBody())));//todo: sign data
+                noteNode.appendChild(noteDataNode);
+            root.appendChild(noteNode);
+            
+            //SIGNATURE
+            Element signatureNode = doc.createElement("signature");
+                signatureNode.appendChild(doc.createTextNode(Util.SignStr(privateKey, noteNode.getTextContent())));
+            root.appendChild(signatureNode);
         doc.appendChild(root);
-        
-        Element noteId = doc.createElement("noteId");
-        noteId.appendChild(doc.createTextNode(Long.toString(note.getNoteId())));
-        root.appendChild(noteId);
-        
-        Element createDate = doc.createElement("createDate");
-        createDate.appendChild(doc.createTextNode(dateFormat.format(note.getCreateDate())));
-        root.appendChild(createDate);
-        
-        Element editDate = doc.createElement("editDate");
-        editDate.appendChild(doc.createTextNode(dateFormat.format(note.getEditDate())));
-        root.appendChild(editDate);
-        
-        Element isDeleted = doc.createElement("isDeleted");
-        isDeleted.appendChild(doc.createTextNode(String.valueOf(note.getDeleted())));
-        root.appendChild(isDeleted);
-        
-        Element publicKeyNode = doc.createElement("publicKey");
-        publicKeyNode.appendChild(doc.createTextNode(Util.publicKeyToBase64(publicKey)));
-        root.appendChild(publicKeyNode);
-        
-        Element noteDataNode = doc.createElement("noteData");
-        noteDataNode.appendChild(doc.createTextNode(aes.encrypt(note.getNoteBody())));//todo: sign data
-        root.appendChild(noteDataNode);
         
         //get data bytes
         byte[] dataBytes = {};
@@ -232,18 +248,18 @@ public class NoteStore{
         ArrayList<Note> notes = new ArrayList();//todo: local db update
         ArrayList<Note> deletedNotes = new ArrayList();//todo: local db update
         try {
-            Element root = doc.getDocumentElement();
+            Element noteListRootNode = doc.getDocumentElement();
 
-            NodeList noteNodes = root.getElementsByTagName("note");
-            for(int i=0; i<noteNodes.getLength(); i++){
-                Element noteNode = (Element)noteNodes.item(i);
-
-                Node createNode = noteNode.getElementsByTagName("createDate").item(0);
-                Node editNode = noteNode.getElementsByTagName("editDate").item(0);
-                Node idNode = noteNode.getElementsByTagName("noteId").item(0);
-                Node keyNode = noteNode.getElementsByTagName("publicKey").item(0);
-                Node deletedNode = noteNode.getElementsByTagName("isDeleted").item(0);
-                Node noteDataNode = noteNode.getElementsByTagName("noteData").item(0);
+            NodeList rootList = noteListRootNode.getElementsByTagName("noteRoot");
+            for(int i=0; i<rootList.getLength(); i++){
+                Element noteRootNode = (Element)rootList.item(i);
+                    Element noteNode = (Element)noteRootNode.getElementsByTagName("note").item(0);
+                        Node createNode = noteNode.getElementsByTagName("createDate").item(0);
+                        Node editNode = noteNode.getElementsByTagName("editDate").item(0);
+                        Node idNode = noteNode.getElementsByTagName("noteId").item(0);
+                        Node deletedNode = noteNode.getElementsByTagName("isDeleted").item(0);
+                        Node noteDataNode = noteNode.getElementsByTagName("noteData").item(0);
+                    Element signatureNode = (Element)noteRootNode.getElementsByTagName("signature").item(0);
 
                 Note note = new Note();
                 note.setCreateDate(new Timestamp(dateFormat.parse(createNode.getTextContent()).getTime()));
@@ -251,16 +267,19 @@ public class NoteStore{
                 note.setNoteId(Long.parseLong(idNode.getTextContent()));
                 note.setDeleted(Boolean.parseBoolean(deletedNode.getTextContent()));
                 
-                try{
-                    note.setNoteBody(aes.decrypt(noteDataNode.getTextContent()));
-                }catch(NullPointerException ex){
-                    note.setNoteBody(null);
-                }
-                
-                if(note.getDeleted()){
-                    deletedNotes.add(note);
-                }else{
-                    notes.add(note);
+                //check signature
+                if(Util.CheckSignature(publicKey, noteNode.getTextContent(), signatureNode.getTextContent())){
+                    try{
+                        note.setNoteBody(aes.decrypt(noteDataNode.getTextContent()));
+                    }catch(NullPointerException ex){
+                        note.setNoteBody(null);
+                    }
+
+                    if(note.getDeleted()){
+                        deletedNotes.add(note);
+                    }else{
+                        notes.add(note);
+                    }
                 }
             }
         }catch(ParseException | UnsupportedEncodingException | InvalidCipherTextException ex){
