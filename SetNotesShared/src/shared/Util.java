@@ -24,7 +24,7 @@ import org.bouncycastle.math.ec.ECPoint;
  */
 public class Util{
     
-    //debug main
+    //debug test main
     public static void main(String[] args){
         AsymmetricCipherKeyPair pair = generateKey();
         ECPrivateKeyParameters priv = (ECPrivateKeyParameters)pair.getPrivate();

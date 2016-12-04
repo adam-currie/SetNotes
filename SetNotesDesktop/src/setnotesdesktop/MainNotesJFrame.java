@@ -5,26 +5,28 @@
  */
 package setnotesdesktop;
 
-import java.awt.Component;
 import java.awt.Dialog;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import setnotesclient.Note;
+import setnotesclient.NoteListener;
 import setnotesclient.NoteStore;
 
 /**
  *
  * @author Adam
  */
-public class MainNotesJFrame extends javax.swing.JFrame{
+public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
     
     private final String KEY_PATH = "key.sav";
     private NoteStore notes = null;
@@ -140,7 +142,7 @@ public class MainNotesJFrame extends javax.swing.JFrame{
     //returns true if password was valid and updates, false otherwise
     public boolean changePassword(String password){
         if(NoteStore.checkKeyValid(password)){
-            notes = new NoteStore(password);
+            notes = new NoteStore(password, this);
             savePassword(password);
             return true;
         }else{
@@ -182,14 +184,11 @@ public class MainNotesJFrame extends javax.swing.JFrame{
         /*
          * Create and display the form
          */
-        java.awt.EventQueue.invokeLater(new Runnable(){
-            public void run(){
-                MainNotesJFrame frame = new MainNotesJFrame();
-                frame.setLocationRelativeTo(null);//center
-                frame.setVisible(true);
-                
-                frame.initNoteStore();
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            MainNotesJFrame frame = new MainNotesJFrame();
+            frame.setLocationRelativeTo(null);//center
+            frame.setVisible(true);
+            frame.initNoteStore();
         });
     }
     
@@ -238,7 +237,7 @@ public class MainNotesJFrame extends javax.swing.JFrame{
     private void initNoteStore(){
         String key = loadPassword();
         if(NoteStore.checkKeyValid(key)){
-            notes = new NoteStore(key);
+            notes = new NoteStore(key, this);
         }else{
             
             while(true){
@@ -256,8 +255,18 @@ public class MainNotesJFrame extends javax.swing.JFrame{
         }
         
         //load notes
-        //notes.getAllNotes();
-        //todo
-        
+        notes.getAllNotes();
+    }
+
+    @Override
+    public void NotesAdded(ArrayList<Note> notes){
+        SwingUtilities.invokeLater(() -> {
+            for(Note note : notes){                
+                NoteJPanel notePanel = new NoteJPanel(note, this);
+                notesListPanel.add(notePanel);
+                notesListPanel.revalidate();
+            }
+            notesListPanel.revalidate();
+        });
     }
 }

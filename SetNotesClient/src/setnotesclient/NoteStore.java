@@ -5,19 +5,16 @@
  */
 package setnotesclient;
 
-import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
@@ -30,13 +27,17 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import java.io.File;
+import java.util.ArrayList;
+import javax.swing.SwingUtilities;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -50,20 +51,23 @@ public class NoteStore{
     private ECPrivateKeyParameters privateKey;
     private ECPublicKeyParameters publicKey;
     private final String URL_STR = "http://intentclan.org:8080/SetNotesServer/NotesServlet";
-    URL url;
+    private URL url;
+    private NoteListener listener;
 
     static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public NoteStore(String privateKeyStr){
+    public NoteStore(String privateKeyStr, NoteListener noteListener){
         if(!checkKeyValid(privateKeyStr)){
             throw new IllegalArgumentException("Private key invalid.");
         }
+        
+        listener = noteListener;
 
         privateKey = Util.base64ToPrivateKey(privateKeyStr);
         publicKey = Util.publicKeyFromPrivate(privateKey);
-        String debug = Util.publicKeyToBase64(publicKey);
+        
         try{
-            url = new URL("http://intentclan.org:8080/SetNotesServer/NotesServlet");
+            url = new URL(URL_STR);
         }catch(MalformedURLException ex){
             Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -82,7 +86,7 @@ public class NoteStore{
             return false;
         }
 
-        //todo
+        //todo: check if this is a valid ecdsakey
         return true;
     }
 
@@ -125,6 +129,7 @@ public class NoteStore{
                 //request from server
                 sendRequestAllNotes();
             }catch(IOException ex){
+                //todo: check again later
             }
         });
         thread.start();
@@ -136,14 +141,11 @@ public class NoteStore{
         con.setDoOutput(true);
         con.setRequestProperty("Content-Type", "application/xml");
 
-        
-        
         Document doc = null;
         try{
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder;
-            dBuilder = dbFactory.newDocumentBuilder();
-            doc = dBuilder.newDocument();
+            DocumentBuilder builder = dbFactory.newDocumentBuilder();
+            doc = builder.newDocument();
         }catch(ParserConfigurationException ex){
             Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
@@ -184,8 +186,8 @@ public class NoteStore{
             Transformer transformer = transformerFactory.newTransformer();
             
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            StreamResult res = new StreamResult(bos);
-            transformer.transform(new DOMSource(doc), res);
+            StreamResult result = new StreamResult(bos);
+            transformer.transform(new DOMSource(doc), result);
             dataBytes = bos.toByteArray();
         }catch(TransformerException ex){
         }
@@ -202,39 +204,72 @@ public class NoteStore{
     }
 
     private void sendRequestAllNotes() throws IOException{
-        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        String queryStr = String.format("?publicKey=%s",
+                URLEncoder.encode(Util.publicKeyToBase64(publicKey), "UTF-8"));
+        
+        URL getUrl = new URL(URL_STR+queryStr);
+        HttpURLConnection con = (HttpURLConnection)getUrl.openConnection();
         con.setRequestMethod("GET");
-        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        //params
-        Map<String, Object> params = new LinkedHashMap<>();
-        params.put("publicKey", Util.publicKeyToBase64(publicKey));
-
-        //todo: sign something
-        StringBuilder data = new StringBuilder();
-        for(Map.Entry<String, Object> param : params.entrySet()){
-            if(data.length() != 0){
-                data.append('&');
-            }
-            data.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-            data.append('=');
-            data.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
+        if(con.getResponseCode() != HttpURLConnection.HTTP_OK){
+            throw new IOException("response code: " + con.getResponseCode());
         }
-        byte[] dataBytes = data.toString().getBytes("UTF-8");
-        con.setRequestProperty("Content-Length", String.valueOf(dataBytes.length));
-        con.getOutputStream().write(dataBytes);
-
-        try(BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))){
-            StringBuilder response = new StringBuilder();
-
-            String line;
-            while((line = in.readLine()) != null){
-                response.append(line);
-            }
-
-            //todo: use event listener to tell ui
-            return;//debug
+        
+        //build document
+        Document doc = null;
+        try{
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = dbFactory.newDocumentBuilder();
+            doc = builder.parse(con.getInputStream());
+        }catch(ParserConfigurationException ex){
+            Logger.getLogger(NoteStore.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(1);
+        }catch(SAXException ex){
+            throw new IOException(ex);
         }
+        
+        //get list of notes
+        ArrayList<Note> notes = new ArrayList();//todo: local db update
+        ArrayList<Note> deletedNotes = new ArrayList();//todo: local db update
+        try {
+            Element root = doc.getDocumentElement();
+
+            NodeList noteNodes = root.getElementsByTagName("note");
+            for(int i=0; i<noteNodes.getLength(); i++){
+                Element noteNode = (Element)noteNodes.item(i);
+
+                Node createNode = noteNode.getElementsByTagName("createDate").item(0);
+                Node editNode = noteNode.getElementsByTagName("editDate").item(0);
+                Node idNode = noteNode.getElementsByTagName("noteId").item(0);
+                Node keyNode = noteNode.getElementsByTagName("publicKey").item(0);
+                Node deletedNode = noteNode.getElementsByTagName("isDeleted").item(0);
+                Node noteDataNode = noteNode.getElementsByTagName("noteData").item(0);
+
+                Note note = new Note();
+                note.setCreateDate(new Timestamp(dateFormat.parse(createNode.getTextContent()).getTime()));
+                note.setEditDate(new Timestamp(dateFormat.parse(editNode.getTextContent()).getTime()));
+                note.setNoteId(Long.parseLong(idNode.getTextContent()));
+                note.setDeleted(Boolean.parseBoolean(deletedNode.getTextContent()));
+                
+                try{
+                    note.setNoteBody(aes.decrypt(noteDataNode.getTextContent()));
+                }catch(NullPointerException ex){
+                    note.setNoteBody(null);
+                }
+                
+                if(note.getDeleted()){
+                    deletedNotes.add(note);
+                }else{
+                    notes.add(note);
+                }
+            }
+        }catch(ParseException | UnsupportedEncodingException | InvalidCipherTextException ex){
+            throw new IOException(ex);
+        }
+
+        //pass notes back to listener
+        listener.NotesAdded(notes);
+        
     }
 
 }

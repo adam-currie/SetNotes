@@ -8,7 +8,6 @@ package setnotesserver;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  *
@@ -43,33 +42,50 @@ class UserNote{
         if(noteId == null){
             throw new NullPointerException();
         }
-        this.noteId = Long.parseLong(noteId);
+        setNoteId(Long.parseLong(noteId));
+    }
+    
+    public void setNoteId(long noteId){
+        this.noteId = noteId;
     }
 
     public Timestamp getCreateDate(){
         return createDate;
     }
+    
+    public String getCreateDateString(){
+        return dateFormat.format(getCreateDate());
+    }
 
     public void setCreateDate(String createDate) throws ParseException {
-        this.createDate = new Timestamp(dateFormat.parse(createDate).getTime());
+        setCreateDate(new Timestamp(dateFormat.parse(createDate).getTime()));
+    }
+
+    public void setCreateDate(Timestamp createDate){
+        this.createDate = createDate;
     }
 
     public Timestamp getEditDate(){
         return editDate;
     }
+    
+    public String getEditDateString(){
+        return dateFormat.format(getEditDate());
+    }
 
     public void setEditDate(String editDate) throws ParseException {
-        this.editDate = new Timestamp(dateFormat.parse(editDate).getTime());
+        setEditDate(new Timestamp(dateFormat.parse(editDate).getTime()));
+    }
+    
+    public void setEditDate(Timestamp editDate){
+        this.editDate = editDate;
     }
 
     public String getNoteBody(){
         return noteData;
     }
 
-    public void setNoteData(String noteBody) throws NullPointerException {
-        if(noteBody == null){
-            throw new NullPointerException();
-        }
+    public void setNoteBody(String noteBody) {
         this.noteData = noteBody;
     }
 
@@ -80,14 +96,18 @@ class UserNote{
     public void setIsDeleted(String isDeleted) throws NullPointerException {
         switch(isDeleted){
             case "true":
-                this.isDeleted = true;
+                setIsDeleted(true);
                 break;
             case "false":
-                this.isDeleted = false;
+                setIsDeleted(false);
                 break;
             default:
                 throw new NullPointerException();
         }
+    }
+    
+    public void setIsDeleted(boolean isDeleted){
+        this.isDeleted = isDeleted;
     }
     
     

@@ -8,7 +8,9 @@ package setnotesserver;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  *
@@ -30,7 +32,6 @@ class Database{
             
             
             //todo: stop if this note's edit date is before a note with the same id on the db
-            //todo: update instead of insert if note already exists
             
             PreparedStatement statement = connection.prepareStatement(
                     "INSERT INTO note (noteid,userid,creation,lastedited,notebody,deleted) VALUES (?, ?, ?, ?, ?, ?) " + 
@@ -56,8 +57,7 @@ class Database{
         }
         
         try(Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD)) {
-            
-            
+                        
             //todo: stop if this note's edit date is before a note with the same id on the db
             
             PreparedStatement statement = connection.prepareStatement(
@@ -76,8 +76,41 @@ class Database{
     private static void loadDriver(){
         try {
             Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Cannot find the driver in the classpath!", e);
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException("Cannot find the driver in the classpath!", ex);
+        }
+    }
+
+    static ArrayList<UserNote> getAllNotes(String userId) throws SQLException{
+        if(driverLoaded == false){
+            loadDriver();
+        }
+        
+        try(Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD)) {
+                        
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT * FROM note WHERE userid=?");
+            statement.setString(1, userId);
+            ResultSet results = statement.executeQuery();
+            
+            ArrayList<UserNote> notes = new ArrayList();
+            while(results.next()){
+                UserNote note = new UserNote();
+                
+                note.setNoteId(results.getLong("noteid"));
+                note.setUserId(results.getString("userid"));
+                note.setCreateDate(results.getTimestamp("creation"));
+                note.setEditDate(results.getTimestamp("lastedited"));
+                note.setNoteBody(results.getString("notebody"));
+                note.setIsDeleted(results.getBoolean("deleted"));
+                
+                notes.add(note);
+            }
+            
+            return notes;
+            
+        }catch(SQLException ex) {
+            throw ex;
         }
     }
     

@@ -7,10 +7,8 @@ package setnotesdesktop;
 
 import java.awt.Container;
 import java.text.SimpleDateFormat;
-import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import jdk.nashorn.internal.runtime.Debug;
 import setnotesclient.Note;
 
 /**
@@ -30,13 +28,30 @@ public class NoteJPanel extends javax.swing.JPanel{
         initComponents();
         this.mainFrame = mainFrame;
         
-        note = new Note();
+        note = Note.createNote();
         createdLabel.setText("created: " + dateFormat.format(note.getCreateDate()));
         editedLabel.setText("");
         
         confirmPanel.setVisible(true);
         saveButton.setVisible(false);
         
+        setupDocumentListener();
+    }
+
+    NoteJPanel(Note note, MainNotesJFrame mainFrame){
+        initComponents();
+        this.mainFrame = mainFrame;
+        this.note = note;
+        
+        createdLabel.setText("created: " + dateFormat.format(note.getCreateDate()));
+        editedLabel.setText("edited: " + dateFormat.format(note.getEditDate()));
+        confirmPanel.setVisible(false);
+        noteTextArea.setText(note.getNoteBody());
+        
+        setupDocumentListener();
+    }
+    
+    private void setupDocumentListener(){
         noteTextArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e){

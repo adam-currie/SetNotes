@@ -5,6 +5,7 @@
  */
 package setnotesclient;
 
+import java.awt.PageAttributes;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 
@@ -18,13 +19,30 @@ public class Note{
     private Timestamp editDate;
     private String noteBody;
     private boolean isDeleted;
+    
+    //create and initialize note
+    public static Note createNote(){
+        Note note = new Note();
+        
+        note.noteBody = "";
+        note.noteId = new SecureRandom().nextLong();
+        note.createDate = new Timestamp(System.currentTimeMillis());
+        note.editDate = new Timestamp(System.currentTimeMillis());
+        note.isDeleted = false;
+        
+        return note;
+    }
 
-    public Note(){
-        noteBody = "";
-        noteId = new SecureRandom().nextLong();
-        createDate = new Timestamp(System.currentTimeMillis());
-        editDate = new Timestamp(System.currentTimeMillis());
-        isDeleted = false;
+    public Note(long noteId, Timestamp createDate, Timestamp editDate, String noteBody, boolean isDeleted){
+        this.noteId = noteId;
+        this.createDate = createDate;
+        this.editDate = editDate;
+        this.noteBody = noteBody;
+        this.isDeleted = isDeleted;
+    }
+    
+    //hidden from public
+    Note(){
     }
     
     long getNoteId(){
@@ -73,7 +91,7 @@ public class Note{
     }
 
     public void setNoteBody(String noteBody){
-        if(this.noteBody.equals(noteBody)){
+        if(this.noteBody != null && this.noteBody.equals(noteBody)){
             return;
         }
         
