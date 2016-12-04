@@ -6,11 +6,9 @@
 package setnotesdesktop;
 
 import java.awt.Window;
-import java.awt.event.WindowEvent;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import setnotesclient.NoteStore;
-import sun.java2d.d3d.D3DRenderQueue;
 
 /**
  *
@@ -23,9 +21,10 @@ public class ChangeKeyJPanel extends javax.swing.JPanel{
     /**
      * Creates new form PasswordJPanel
      */
-    public ChangeKeyJPanel(MainNotesJFrame mainFrame){
+    public ChangeKeyJPanel(MainNotesJFrame mainFrame, String key){
         this.mainFrame = mainFrame;
         initComponents();
+        passwordField.setText(key);
     }
 
     /**

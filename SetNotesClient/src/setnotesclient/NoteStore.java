@@ -290,5 +290,9 @@ public class NoteStore{
         listener.NotesAdded(notes);
         
     }
+    
+    public String getPrivateKey(){
+        return Util.privateKeyToBase64(privateKey);
+    }
 
 }

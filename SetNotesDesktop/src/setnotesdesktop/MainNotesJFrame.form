@@ -16,7 +16,7 @@
           <SubComponents>
             <MenuItem class="javax.swing.JMenuItem" name="changePassButton">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Change Private Key"/>
+                <Property name="text" type="java.lang.String" value="Edit Private Key"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="changePassButtonActionPerformed"/>

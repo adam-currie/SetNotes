@@ -99,7 +99,7 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
 
         jMenu2.setText("Edit");
 
-        changePassButton.setText("Change Private Key");
+        changePassButton.setText("Edit Private Key");
         changePassButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 changePassButtonActionPerformed(evt);
@@ -147,6 +147,8 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
             notesListPanel.removeAll();//todo:check
             notesListPanel.revalidate();
             notesListPanel.repaint();
+            
+            notes.getAllNotes();
             return true;
         }else{
             return false;
@@ -207,9 +209,9 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
     // End of variables declaration//GEN-END:variables
     
     private void showKeyChangeDlg(){
-        ChangeKeyJPanel keyPanel = new ChangeKeyJPanel(this);
+        ChangeKeyJPanel keyPanel = new ChangeKeyJPanel(this, notes.getPrivateKey());
         
-        JDialog dlg = new JDialog(this, "Change Private Key", Dialog.ModalityType.APPLICATION_MODAL);
+        JDialog dlg = new JDialog(this, "Edit Private Key", Dialog.ModalityType.APPLICATION_MODAL);
         dlg.add(keyPanel);
         dlg.setResizable(false);
         dlg.pack();
