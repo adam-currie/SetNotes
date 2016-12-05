@@ -1,8 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File AESEncryption.java
+*  Project SetNotesClient
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesclient;
 
 import java.io.ByteArrayInputStream;
@@ -26,7 +27,10 @@ import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-
+/*
+ * Name     AESEncryption
+ * Purpose  Encryption and decryption of messages.
+ */
 class AESEncryption{
     private Charset charset = StandardCharsets.ISO_8859_1;
     PaddedBufferedBlockCipher encryptCipher;
@@ -34,17 +38,25 @@ class AESEncryption{
     SecureRandom rand = new SecureRandom();
     byte[] keyBytes;
     
-    
-    //debug
+    /*
+     * Method           main
+     * Description      test main  
+     */
     public static void main(String[] args) throws UnsupportedEncodingException, InvalidCipherTextException{
         AESEncryption aes = new AESEncryption("testkeystring");
-        String cipherText = aes.encrypt(" test string test string test string test string test string test string test string test string test string test string test string test string test string test string test string test string test string test string");
+        String cipherText = aes.encrypt("test string test string test string test string test string test string test string test string test string test string test string");
         
         String secret = aes.decrypt(cipherText);
         
         return;
     }
-
+    
+    /*
+     * Method           AESEncryption
+     * Description      Creates AESEncryption with a key.
+     * Params       
+     *  String KeyStr   AES key in base64.      
+     */
     AESEncryption(String keyStr) {
         encryptCipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()));
         decryptCipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()));
@@ -60,6 +72,14 @@ class AESEncryption{
         
     }
     
+    /*
+     * Method           encrypt
+     * Description      ecrypts a payload
+     * Params           
+     *  String paload   payload to encypt
+     * Returns
+     *  String          encrypted cypher text
+     */
     String encrypt(String payload) throws UnsupportedEncodingException{
         InputStream in = new ByteArrayInputStream(payload.getBytes(charset));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -98,7 +118,14 @@ class AESEncryption{
         return Base64.getEncoder().encodeToString(out.toByteArray());      
     }
     
-    //returns decrypted payload
+    /*
+     * Method               decrypt
+     * Description          decrypts a message
+     * Params       
+     *  String cipherText   AES key in base64
+     * Returns
+     *  String              decrypted payload
+     */
     String decrypt(String cipherText) throws UnsupportedEncodingException, InvalidCipherTextException{
         InputStream in = new ByteArrayInputStream(Base64.getDecoder().decode(cipherText));
         ByteArrayOutputStream out = new ByteArrayOutputStream();

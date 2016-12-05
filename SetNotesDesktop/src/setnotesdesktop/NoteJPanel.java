@@ -1,8 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File NoteJPanel.java
+*  Project SetNotesDesktop
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesdesktop;
 
 import java.awt.Container;
@@ -11,9 +12,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import setnotesclient.Note;
 
-/**
- *
- * @author Adam
+/*
+ * Name     NoteJPanel
+ * Purpose  JPanel for displaying and editing a note.
  */
 public class NoteJPanel extends javax.swing.JPanel{
     
@@ -21,8 +22,13 @@ public class NoteJPanel extends javax.swing.JPanel{
     private MainNotesJFrame mainFrame;
     private Note note;
 
-    /**
-     * Creates new form NoteJPanel
+    /*
+     * Method                       NoteJPanel
+     * Description                  constructor, creates a note panel with a new note
+     * Params           
+     *  MainNotesJFrame mainFrame   the main frame
+     * Returns          
+     *  NoteJPanel                  the new panel
      */
     public NoteJPanel(MainNotesJFrame mainFrame){
         initComponents();
@@ -38,6 +44,15 @@ public class NoteJPanel extends javax.swing.JPanel{
         setupDocumentListener();
     }
 
+    /*
+     * Method                       NoteJPanel
+     * Description                  constructor, creates a note panel initialized with the specified note
+     * Params           
+     *  Note note                   the note to initialize from
+     *  MainNotesJFrame mainFrame   the main frame
+     * Returns          
+     *  NoteJPanel                  the new panel
+     */
     NoteJPanel(Note note, MainNotesJFrame mainFrame){
         initComponents();
         this.mainFrame = mainFrame;
@@ -51,6 +66,10 @@ public class NoteJPanel extends javax.swing.JPanel{
         setupDocumentListener();
     }
     
+    /*
+     * Method                       setupDocumentListener
+     * Description                  sets up the DocumentListener for the note text area
+     */
     private void setupDocumentListener(){
         noteTextArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -238,6 +257,10 @@ public class NoteJPanel extends javax.swing.JPanel{
     private javax.swing.JButton saveButton;
     // End of variables declaration//GEN-END:variables
     
+    /*
+     * Method                       noteTextChanged
+     * Description                  called when note text has changed, 
+     */
     private void noteTextChanged(){
         String text = noteTextArea.getText();
         

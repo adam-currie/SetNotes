@@ -1,16 +1,23 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File NoteListener.java
+*  Project SetNotesClient
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesclient;
 
 import java.util.ArrayList;
 
-/**
- *
- * @author Adam
+/*
+ * Name     NoteListener
+ * Purpose  Listens for added notes.
  */
 public interface NoteListener{
-    public void NotesAdded(ArrayList<Note> notes);
+    /*
+     * Method           notesAdded
+     * Description      called when notes are being added
+     * Params           
+     *  ArrayList<Note> notes   the notes to be added
+     */
+    public void notesAdded(ArrayList<Note> notes);
 }

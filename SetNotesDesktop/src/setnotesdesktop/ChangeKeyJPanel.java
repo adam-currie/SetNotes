@@ -1,8 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File ChangeKeyJPanel.java
+*  Project SetNotesDesktop
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesdesktop;
 
 import java.awt.Window;
@@ -10,16 +11,22 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import setnotesclient.NoteStore;
 
-/**
- *
- * @author Adam
+/*
+ * Name     ChangeKeyJPanel
+ * Purpose  JPanel for viewing and changing the users private key.
  */
 public class ChangeKeyJPanel extends javax.swing.JPanel{
     
     private MainNotesJFrame mainFrame;
 
-    /**
-     * Creates new form PasswordJPanel
+    /*
+     * Method                       ChangeKeyJPanel
+     * Description                  constructor, creates a change key panel with the specified key
+     * Params           
+     *  MainNotesJFrame mainFrame   the main frame
+     *  String key                  the original key in base64
+     * Returns          
+     *  ChangeKeyJPanel             the new panel
      */
     public ChangeKeyJPanel(MainNotesJFrame mainFrame, String key){
         this.mainFrame = mainFrame;

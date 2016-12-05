@@ -1,8 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File ECDSAUtil.java
+*  Project SetNotesShared
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package shared;
 
 import java.math.BigInteger;
@@ -21,13 +22,16 @@ import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.math.ec.ECPoint;
 
-/**
- *
- * @author Adam
+/*
+ * Name     ECDSAUtil
+ * Purpose  Utility class for ECDSA keys and signing.
  */
-public class Util{
+public class ECDSAUtil{
     
-    //debug test main
+    /*
+     * Method           main
+     * Description      test main  
+     */
     public static void main(String[] args) throws InvalidKeyException{
         AsymmetricCipherKeyPair pair = generateKey();
         ECPrivateKeyParameters priv = (ECPrivateKeyParameters)pair.getPrivate();
@@ -45,11 +49,19 @@ public class Util{
                 privateKeyToBase64(base64ToPrivateKey(privateKeyToBase64(priv)))
         );
         
-        ECPublicKeyParameters key = Util.base64ToPublicKey("56456456");
+        ECPublicKeyParameters key = ECDSAUtil.base64ToPublicKey("56456456");
         
         return;
     }
     
+    /*
+     * Method                               publicKeyFromPrivate
+     * Description                          get a public key from a private key
+     * Params           
+     *  ECPrivateKeyParameters privateKey   the private key
+     * Returns          
+     *  ECPublicKeyParameters               the public key
+     */
     public static ECPublicKeyParameters publicKeyFromPrivate(ECPrivateKeyParameters privateKey){
         //get params
         X9ECParameters curveParams = SECNamedCurves.getByName("secp256r1");
@@ -61,14 +73,38 @@ public class Util{
         return new ECPublicKeyParameters(q, domainParams);
     }
     
+    /*
+     * Method                               privateKeyToBase64
+     * Description                          get a base64 string from a private key
+     * Params           
+     *  ECPrivateKeyParameters privateKey   the private key
+     * Returns          
+     *  String                              the key string
+     */
     public static String privateKeyToBase64(ECPrivateKeyParameters key){
         return Base64.getEncoder().encodeToString(key.getD().toByteArray());
     }
     
+    /*
+     * Method                               publicKeyToBase64
+     * Description                          get a base64 string from a public key
+     * Params           
+     *  ECPublicKeyParameters privateKey    the public key
+     * Returns          
+     *  String                              the key string
+     */
     public static String publicKeyToBase64(ECPublicKeyParameters key){
         return Base64.getEncoder().encodeToString(key.getQ().getEncoded(true));
     }
     
+    /*
+     * Method                   base64ToPrivateKey
+     * Description              get a base64 string from a privateKey
+     * Params           
+     *  String keyStr           the key string
+     * Returns          
+     *  ECPrivateKeyParameters  the converted key
+     */
     public static ECPrivateKeyParameters base64ToPrivateKey(String keyStr) throws InvalidKeyException{
         try{
             //get params
@@ -85,6 +121,14 @@ public class Util{
         }
     }
     
+    /*
+     * Method                   base64ToPublicKey
+     * Description              get a base64 string from a public key
+     * Params           
+     *  String keyStr           the key string
+     * Returns          
+     *  ECPublicKeyParameters   the converted key
+     */
     public static ECPublicKeyParameters base64ToPublicKey(String keyStr) throws InvalidKeyException{
         try{
             //get params
@@ -101,6 +145,12 @@ public class Util{
         }
     }
     
+    /*
+     * Method                   generateKey
+     * Description              generate a key pair
+     * Returns          
+     *  AsymmetricCipherKeyPair the generated key pair
+     */
     public static AsymmetricCipherKeyPair generateKey(){
         //get params
         X9ECParameters curveParams = SECNamedCurves.getByName("secp256r1");
@@ -115,7 +165,16 @@ public class Util{
         return generator.generateKeyPair();
     }
     
-    public static String SignStr(ECPrivateKeyParameters key, String message){
+    /*
+     * Method                       signStr
+     * Description                  sign the string with the specified key
+     * Params           
+     *  ECPrivateKeyParameters key  private key to sign with
+     *  String message              the message to sign
+     * Returns          
+     *  String                      signature string
+     */
+    public static String signStr(ECPrivateKeyParameters key, String message){
         byte[] msgBytes = message.getBytes(StandardCharsets.UTF_8);
         
         ECDSASigner signer = new ECDSASigner();
@@ -128,7 +187,16 @@ public class Util{
         return sigStr;
     }
     
-    public static boolean CheckSignature(ECPublicKeyParameters key, String message, String signature){
+    /*
+     * Method                       checkSignature
+     * Description                  verify that the signature matches the message
+     * Params           
+     *  String message              the signed message
+     *  String signature            the signature to check
+     * Returns          
+     *  boolean                     whether the signature matched
+     */
+    public static boolean checkSignature(ECPublicKeyParameters key, String message, String signature){
         byte[] msgBytes = message.getBytes(StandardCharsets.UTF_8);
         
         ECDSASigner signer = new ECDSASigner();

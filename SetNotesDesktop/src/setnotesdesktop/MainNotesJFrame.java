@@ -1,8 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File MainNotesJFrame.java
+*  Project SetNotesDesktop
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesdesktop;
 
 import java.awt.Dialog;
@@ -22,9 +23,9 @@ import setnotesclient.Note;
 import setnotesclient.NoteListener;
 import setnotesclient.NoteStore;
 
-/**
- *
- * @author Adam
+/*
+ * Name     MainNotesJFrame
+ * Purpose  Main frame for desktop notes application.
  */
 public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
     
@@ -35,8 +36,9 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
         return notes;
     }
 
-    /**
-     * Creates new form MainNotesJFrame
+    /*
+     * Method                       MainNotesJFrame
+     * Description                  constructor
      */
     public MainNotesJFrame(){
         initComponents();
@@ -139,12 +141,19 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
         notesListPanel.revalidate();
     }//GEN-LAST:event_addButtonActionPerformed
 
-    //returns true if password was valid and updates, false otherwise
+    /*
+     * Method               changePassword
+     * Description          update the password used for storing and retriveing notes
+     * Params           
+     *  String password     base64 private key
+     * Returns          
+     *  boolean             true if password was valid and updates, false otherwise
+     */
     public boolean changePassword(String password){
         if(NoteStore.checkKeyValid(password)){
             notes = new NoteStore(password, this);
             savePassword(password);
-            notesListPanel.removeAll();//todo:check
+            notesListPanel.removeAll();
             notesListPanel.revalidate();
             notesListPanel.repaint();
             
@@ -208,6 +217,10 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
     private javax.swing.JScrollPane notesScrollPane;
     // End of variables declaration//GEN-END:variables
     
+    /*
+     * Method                       showKeyChangeDlg
+     * Description                  show the key change dialog
+     */
     private void showKeyChangeDlg(){
         ChangeKeyJPanel keyPanel = new ChangeKeyJPanel(this, notes.getPrivateKey());
         
@@ -219,6 +232,12 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
         dlg.setVisible(true);
     }
     
+    /*
+     * Method                   savePassword
+     * Description              save the password
+     * Params               
+     *  String password         password to save
+     */
     private void savePassword(String password){
         try (PrintWriter out = new PrintWriter(KEY_PATH)) {
             out.println(password);
@@ -228,7 +247,12 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
         }
     }
 
-    //returns null if password cannot be found
+    /*
+     * Method                       loadPassword
+     * Description                  returns the password in base64
+     * Returns          
+     *  String                      the base64 password, null if password cannot be found
+     */
     private String loadPassword(){
         try (BufferedReader br = new BufferedReader(new FileReader(KEY_PATH))) {
             return br.readLine();
@@ -238,7 +262,11 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
             return null;
         }
     }
-
+    
+    /*
+     * Method                       initNoteStore
+     * Description                  initialize the NoteStore, load the key or get one from the user
+     */
     private void initNoteStore(){
         String key = loadPassword();
         if(NoteStore.checkKeyValid(key)){
@@ -263,8 +291,14 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
         notes.getAllNotes();
     }
 
+    /*
+     * Method                       notesAdded
+     * Description                  called from another thread when notes are being added
+     * Params           
+     *  ArrayList<Note> notes       the notes to add
+     */
     @Override
-    public void NotesAdded(ArrayList<Note> notes){
+    public void notesAdded(ArrayList<Note> notes){
         SwingUtilities.invokeLater(() -> {
             for(Note note : notes){                
                 NoteJPanel notePanel = new NoteJPanel(note, this);

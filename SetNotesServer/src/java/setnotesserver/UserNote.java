@@ -1,17 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File UserNote.java
+*  Project SetNotesServer
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesserver;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-/**
- *
- * @author Adam
+/*
+ * Name     UserNote
+ * Purpose  Stores information about a note associated with a user.
  */
 class UserNote{
     private String userId;

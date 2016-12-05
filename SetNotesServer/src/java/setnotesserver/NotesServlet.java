@@ -1,22 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+/*  
+*  File NoteServlet.java
+*  Project SetNotesServer
+*  Authors Adam Currie, Dylan O'Neill
+*  Date 2016-11-8
+*/
 package setnotesserver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,7 +23,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -37,11 +33,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-import shared.Util;
+import shared.ECDSAUtil;
 
-/**
- *
- * @author Adam
+/*
+ * Name     NotesServlet
+ * Purpose  Servlet for adding and retrieving encrypted notes.
  */
 public class NotesServlet extends HttpServlet{
 
@@ -54,16 +50,25 @@ public class NotesServlet extends HttpServlet{
     public String getServletInfo(){
         return "Set Notes Server";
     }// </editor-fold>
-
+    
+    /*
+     * Method                           doPut
+     * Description                      put request handler
+     * Params           
+     *  HttpServletRequest request      the request object
+     *  HttpServletResponse response    the response object
+     */
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
         try{
             UserNote note = getNoteFromRequest(request);
             
             if(note.isDeleted()){
+                //DELETE
                 Database.delete(note.getUserId(), note.getNoteId(), note.getSignature());
                 response.setStatus(HttpServletResponse.SC_OK);
             }else{
+                //ADD OR UPDATE
                 Database.addOrUpdate(note);
                 response.setStatus(HttpServletResponse.SC_OK);
             }
@@ -74,6 +79,13 @@ public class NotesServlet extends HttpServlet{
         }
     }
 
+    /*
+     * Method                           doGet
+     * Description                      get request handler
+     * Params           
+     *  HttpServletRequest request      the request object
+     *  HttpServletResponse response    the response object
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{            
         try{
@@ -103,6 +115,14 @@ public class NotesServlet extends HttpServlet{
         }
     }
     
+    /*
+     * Method                       getXmlFromNotes
+     * Description                  creates an xml document froma list of notes
+     * Params           
+     *  ArrayList<UserNote> notes   the notes to create xml for
+     * Returns          
+     *  Document                    the created xml document
+     */
     private static Document getXmlFromNotes(ArrayList<UserNote> notes) throws ParserConfigurationException{
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder;
@@ -154,6 +174,14 @@ public class NotesServlet extends HttpServlet{
         return doc;
     }
     
+    /*
+     * Method                       getNoteFromRequest
+     * Description                  rerieve a UserNote from a request object
+     * Params           
+     *  HttpServletRequest request  the request object
+     * Returns          
+     *  UserNote                    the creates note
+     */
     private static UserNote getNoteFromRequest(HttpServletRequest request) throws DataFormatException, SignatureException, InvalidKeyException{
         try{
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -183,8 +211,8 @@ public class NotesServlet extends HttpServlet{
             }
             
             //check signature
-            ECPublicKeyParameters key = Util.base64ToPublicKey(note.getUserId());
-            if(Util.CheckSignature(key, noteNode.getTextContent(), note.getSignature())){
+            ECPublicKeyParameters key = ECDSAUtil.base64ToPublicKey(note.getUserId());
+            if(ECDSAUtil.checkSignature(key, noteNode.getTextContent(), note.getSignature())){
                 return note;
             }else{
                 throw new SignatureException("Invalid signature.");
