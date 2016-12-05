@@ -222,7 +222,12 @@ public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
      * Description                  show the key change dialog
      */
     private void showKeyChangeDlg(){
-        ChangeKeyJPanel keyPanel = new ChangeKeyJPanel(this, notes.getPrivateKey());
+        ChangeKeyJPanel keyPanel = null;
+        if(notes == null){
+            keyPanel = new ChangeKeyJPanel(this);
+        }else{
+            keyPanel = new ChangeKeyJPanel(this, notes.getPrivateKey());
+        }
         
         JDialog dlg = new JDialog(this, "Edit Private Key", Dialog.ModalityType.APPLICATION_MODAL);
         dlg.add(keyPanel);

@@ -18,7 +18,20 @@ import setnotesclient.NoteStore;
 public class ChangeKeyJPanel extends javax.swing.JPanel{
     
     private MainNotesJFrame mainFrame;
-
+    
+    /*
+     * Method                       ChangeKeyJPanel
+     * Description                  constructor, creates a change key panel
+     * Params           
+     *  MainNotesJFrame mainFrame   the main frame
+     * Returns          
+     *  ChangeKeyJPanel             the new panel
+     */
+    public ChangeKeyJPanel(MainNotesJFrame mainFrame){
+        this.mainFrame = mainFrame;
+        initComponents();
+    }
+    
     /*
      * Method                       ChangeKeyJPanel
      * Description                  constructor, creates a change key panel with the specified key
