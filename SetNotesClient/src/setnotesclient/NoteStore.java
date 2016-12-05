@@ -1,7 +1,7 @@
 /*  
 *  File NoteStore.java
 *  Project SetNotesClient
-*  Authors Adam Currie, Dylan O'Neill
+*  Authors Adam Currie, Dylan O'Neill, Alexander Martin
 *  Date 2016-11-8
 */
 package setnotesclient;

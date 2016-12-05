@@ -1,7 +1,7 @@
 /*  
 *  File NoteServlet.java
 *  Project SetNotesServer
-*  Authors Adam Currie, Dylan O'Neill
+*  Authors Adam Currie, Dylan O'Neill, Alexander Martin
 *  Date 2016-11-8
 */
 package setnotesserver;
