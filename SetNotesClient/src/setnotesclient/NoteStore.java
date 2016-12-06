@@ -109,13 +109,18 @@ public class NoteStore{
      * Returns          
      *  Boolean             whether the key is a valid ecdsa key
      */
-    public static boolean checkKeyValid(String key){
-        if(key == null || key.isEmpty()){
+    public static boolean checkKeyValid(String keyStr){
+        if(keyStr == null || keyStr.isEmpty()){
             return false;
         }
-
-        //todo: check if this is a valid ecdsakey
-        return true;
+        try{            
+            //it is defined behaviour for the key to be made valid if it isn't
+            //so if it's changed to a valid key then the original is invalid
+            ECPrivateKeyParameters potentialPrivateKey = ECDSAUtil.base64ToPrivateKey(keyStr);            
+            return ECDSAUtil.privateKeyToBase64(potentialPrivateKey).equals(keyStr);
+        }catch(InvalidKeyException ex){
+            return false;
+        }
     }
     
     /*
