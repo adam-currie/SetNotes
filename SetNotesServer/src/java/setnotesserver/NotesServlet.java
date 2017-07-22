@@ -6,6 +6,7 @@
 */
 package setnotesserver;
 
+import shared.EncryptedNote;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -61,7 +62,7 @@ public class NotesServlet extends HttpServlet{
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
         try{
-            UserNote note = getNoteFromRequest(request);
+            EncryptedNote note = getNoteFromRequest(request);
             
             if(note.isDeleted()){
                 //DELETE
@@ -92,7 +93,7 @@ public class NotesServlet extends HttpServlet{
             Map<java.lang.String,java.lang.String[]> map = request.getParameterMap();
             String userId = request.getParameter("publicKey");
             
-            ArrayList<UserNote> notes = Database.getAllNotes(userId);
+            ArrayList<EncryptedNote> notes = Database.getAllNotes(userId);
             Document doc = getXmlFromNotes(notes);
             
             //get xml bytes
@@ -123,7 +124,7 @@ public class NotesServlet extends HttpServlet{
      * Returns          
      *  Document                    the created xml document
      */
-    private static Document getXmlFromNotes(ArrayList<UserNote> notes) throws ParserConfigurationException{
+    private static Document getXmlFromNotes(ArrayList<EncryptedNote> notes) throws ParserConfigurationException{        
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder;
         dBuilder = dbFactory.newDocumentBuilder();
@@ -132,7 +133,7 @@ public class NotesServlet extends HttpServlet{
         Element noteListRootNode = doc.createElement("notes");
         doc.appendChild(noteListRootNode);
         
-        for(UserNote userNote : notes){
+        for(EncryptedNote userNote : notes){
             //NOTE ROOT
             Element noteRootNode = doc.createElement("noteRoot");
                 //NOTE
@@ -182,7 +183,7 @@ public class NotesServlet extends HttpServlet{
      * Returns          
      *  UserNote                    the creates note
      */
-    private static UserNote getNoteFromRequest(HttpServletRequest request) throws DataFormatException, SignatureException, InvalidKeyException{
+    private static EncryptedNote getNoteFromRequest(HttpServletRequest request) throws DataFormatException, SignatureException, InvalidKeyException{
         try{
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -192,7 +193,7 @@ public class NotesServlet extends HttpServlet{
             Element noteNode = (Element)root.getElementsByTagName("note").item(0);
             Element signatureNode = (Element)root.getElementsByTagName("signature").item(0);
 
-            UserNote note = new UserNote();
+            EncryptedNote note = new EncryptedNote();
             Node createNode = noteNode.getElementsByTagName("createDate").item(0);
             Node editNode = noteNode.getElementsByTagName("editDate").item(0);
             Node idNode = noteNode.getElementsByTagName("noteId").item(0);

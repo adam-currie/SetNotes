@@ -10,7 +10,11 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.zip.Deflater;
+import static java.util.zip.Deflater.FILTERED;
+import static java.util.zip.Deflater.HUFFMAN_ONLY;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -82,6 +86,7 @@ public class ECDSAUtil{
      *  String                              the key string
      */
     public static String privateKeyToBase64(ECPrivateKeyParameters key){
+        //todo: maybe compress this        
         return Base64.getEncoder().encodeToString(key.getD().toByteArray());
     }
     

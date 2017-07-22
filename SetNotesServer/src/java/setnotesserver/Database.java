@@ -6,6 +6,7 @@
 */
 package setnotesserver;
 
+import shared.EncryptedNote;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -17,8 +18,8 @@ import java.util.ArrayList;
  * Name     Database
  * Purpose  Data access layer for notes database.
  */
-class Database{
-    static final String DB_URL = "jdbc:mysql://intentclan.org:3306/notedb";
+class Database {
+    static final String DB_URL = "jdbc:mysql://localhost:3306/notedb";
     static final String USERNAME = "notesadmin";
     static final String PASSWORD = "curriemartinoneill";
     private static boolean driverLoaded = false;
@@ -29,7 +30,7 @@ class Database{
      * Params           
      *  UserNote note           the note to add or update
      */
-    static void addOrUpdate(UserNote note) throws SQLException{
+    static void addOrUpdate(EncryptedNote note) throws SQLException{
         if(driverLoaded == false){
             loadDriver();
         }
@@ -107,7 +108,7 @@ class Database{
      * Returns          
      *  ArrayList<UserNote>     the notes
      */
-    static ArrayList<UserNote> getAllNotes(String userId) throws SQLException{
+    static ArrayList<EncryptedNote> getAllNotes(String userId) throws SQLException{
         if(driverLoaded == false){
             loadDriver();
         }
@@ -119,9 +120,9 @@ class Database{
             statement.setString(1, userId);
             ResultSet results = statement.executeQuery();
             
-            ArrayList<UserNote> notes = new ArrayList();
+            ArrayList<EncryptedNote> notes = new ArrayList();
             while(results.next()){
-                UserNote note = new UserNote();
+                EncryptedNote note = new EncryptedNote();
                 
                 note.setNoteId(results.getLong("noteid"));
                 note.setUserId(results.getString("userid"));

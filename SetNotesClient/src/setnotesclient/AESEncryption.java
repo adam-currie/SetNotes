@@ -31,7 +31,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
  * Name     AESEncryption
  * Purpose  Encryption and decryption of messages.
  */
-class AESEncryption{
+class AESEncryption {
     private Charset charset = StandardCharsets.ISO_8859_1;
     PaddedBufferedBlockCipher encryptCipher;
     PaddedBufferedBlockCipher decryptCipher;

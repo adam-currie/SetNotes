@@ -4,8 +4,9 @@
 *  Authors Adam Currie, Dylan O'Neill, Alexander Martin
 *  Date 2016-11-8
 */
-package setnotesserver;
+package shared;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,7 +15,7 @@ import java.text.SimpleDateFormat;
  * Name     UserNote
  * Purpose  Stores information about a note associated with a user.
  */
-class UserNote{
+public class EncryptedNote implements Serializable {
     private String userId;
     private long noteId;
     private Timestamp createDate;

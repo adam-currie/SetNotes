@@ -29,6 +29,7 @@ import setnotesclient.NoteStore;
  */
 public class MainNotesJFrame extends javax.swing.JFrame implements NoteListener{
     
+    //todo: encrypt with hardware info as the key
     private final String KEY_PATH = "key.sav";
     private NoteStore notes = null;
 

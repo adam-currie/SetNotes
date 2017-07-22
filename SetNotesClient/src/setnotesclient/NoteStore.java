@@ -41,7 +41,7 @@ import org.xml.sax.SAXException;
 
 /*
  * Name     NoteStore
- * Purpose  Client front-end for storing and retrieving notes.
+ * Purpose  Underlying client for storing and retrieving notes.
  */
 public class NoteStore{
 
@@ -50,7 +50,7 @@ public class NoteStore{
     PaddedBufferedBlockCipher decryptCipher;
     private ECPrivateKeyParameters privateKey;
     private ECPublicKeyParameters publicKey;
-    private final String URL_STR = "http://intentclan.org:8080/SetNotesServer/NotesServlet";
+    private final String URL_STR = "http://localhost:8080/SetNotesServer/NotesServlet";
     private URL url;
     private NoteListener listener;
 
@@ -130,6 +130,9 @@ public class NoteStore{
      *  Note note           note to add or update
      */
     public void addOrUpdate(Note note){
+        
+        
+        
         Thread thread = new Thread(() -> {
             try{
                 //todo: localdb
@@ -228,8 +231,8 @@ public class NoteStore{
                 noteNode.appendChild(isDeleted);
 
                 Element publicKeyNode = doc.createElement("publicKey");
-                String keyStr = ECDSAUtil.publicKeyToBase64(publicKey);
-                publicKeyNode.appendChild(doc.createTextNode(keyStr));
+                String pubKeyStr = ECDSAUtil.publicKeyToBase64(publicKey);
+                publicKeyNode.appendChild(doc.createTextNode(pubKeyStr));
                 noteNode.appendChild(publicKeyNode);
 
                 Element noteDataNode = doc.createElement("noteData");
@@ -272,15 +275,16 @@ public class NoteStore{
      * Description          sends a request for all notes
      */
     private void sendRequestAllNotes() throws IOException{
-        String queryStr = String.format("?publicKey=%s",
-                URLEncoder.encode(ECDSAUtil.publicKeyToBase64(publicKey), "UTF-8"));
+        String queryStr = String.format(
+            "?publicKey=%s", URLEncoder.encode(ECDSAUtil.publicKeyToBase64(publicKey), "UTF-8")
+        );
         
         URL getUrl = new URL(URL_STR+queryStr);
         HttpURLConnection con = (HttpURLConnection)getUrl.openConnection();
         con.setRequestMethod("GET");
 
         if(con.getResponseCode() != HttpURLConnection.HTTP_OK){
-            throw new IOException("response code: " + con.getResponseCode());
+            throw new IOException("response code: " + con.getResponseCode() + " : " + con.getResponseMessage());
         }
         
         //build document
@@ -298,7 +302,7 @@ public class NoteStore{
         
         //get list of notes
         ArrayList<Note> notes = new ArrayList();//todo: local db update
-        ArrayList<Note> deletedNotes = new ArrayList();
+        ArrayList<Note> deletedNotes = new ArrayList();//todo: remove these from local db
         try {
             Element noteListRootNode = doc.getDocumentElement();
 
